@@ -1,347 +1,464 @@
 "use client";
-import { useState } from "react";
-import { AlertTriangle, Info, ChevronDown, ArrowRight } from "lucide-react";
-import { INDIAN_STATES, MAJOR_CROPS } from "@/lib/constants";
 
-type RiskForm = {
-  state: string;
-  district: string;
-  crop: string;
-  landType: string;
-  irrigationType: string;
-  farmSize: string;
-};
-
-type FormErrors = Partial<Record<keyof RiskForm, string>>;
-
-const LAND_TYPES = [
-  "Canal-irrigated flatland",
-  "Rainfed upland",
-  "Rainfed lowland / flood-prone",
-  "Dryland / semi-arid",
-  "Hilly / undulating terrain",
-  "Coastal / saline-prone",
-];
-
-const IRRIGATION_TYPES = [
-  "Canal",
-  "Borewell / tubewell",
-  "Drip / micro-irrigation",
-  "Rainfed (no irrigation)",
-  "Tank / pond",
-];
-
-const DISTRICTS_BY_STATE: Record<string, string[]> = {
-  "Punjab": ["Amritsar", "Ludhiana", "Patiala", "Bathinda", "Gurdaspur", "Firozpur"],
-  "Haryana": ["Ambala", "Hisar", "Karnal", "Rohtak", "Gurugram", "Sonipat"],
-  "Uttar Pradesh": ["Lucknow", "Varanasi", "Agra", "Allahabad", "Meerut", "Gorakhpur"],
-  "Maharashtra": ["Pune", "Nashik", "Aurangabad", "Nagpur", "Solapur", "Kolhapur"],
-  "Madhya Pradesh": ["Bhopal", "Indore", "Gwalior", "Jabalpur", "Ujjain", "Sagar"],
-  "Rajasthan": ["Jaipur", "Jodhpur", "Kota", "Ajmer", "Bikaner", "Alwar"],
-  "Bihar": ["Patna", "Gaya", "Muzaffarpur", "Bhagalpur", "Darbhanga", "Samastipur"],
-  "West Bengal": ["Kolkata", "Murshidabad", "Nadia", "Bardhaman", "Jalpaiguri", "Bankura"],
-  "Andhra Pradesh": ["Guntur", "Krishna", "Kurnool", "Chittoor", "East Godavari", "West Godavari"],
-  "Karnataka": ["Bengaluru", "Mysuru", "Belagavi", "Dharwad", "Tumkur", "Vijayapura"],
-  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli", "Tirunelveli"],
-  "Gujarat": ["Ahmedabad", "Surat", "Rajkot", "Vadodara", "Junagadh", "Anand"],
-};
-
-const RISK_CATEGORIES = [
-  {
-    key: "drought",
-    label: "Drought Risk",
-    description:
-      "Based on IMD historical rainfall deficit data for your district and IMD aridity index for the region.",
-  },
-  {
-    key: "flood",
-    label: "Flood / Waterlogging Risk",
-    description:
-      "Derived from NRSC flood hazard mapping and historical inundation frequency for your stated land type.",
-  },
-  {
-    key: "price",
-    label: "Price Volatility Risk",
-    description:
-      "Computed from eNAM mandi price coefficient of variation for the selected crop over the last 5 years.",
-  },
-  {
-    key: "soil",
-    label: "Soil Degradation Risk",
-    description:
-      "Based on NBSS&LUP soil health card data and NRSC land-use change records for your district.",
-  },
-];
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import {
+  ShieldAlert,
+  AlertTriangle,
+  RotateCcw,
+  ArrowRight,
+  Info,
+  Layers,
+  CloudRain,
+  TrendingDown,
+  Bug,
+  Droplets,
+  CheckCircle2,
+  Printer,
+  ChevronRight,
+  AlertCircle,
+} from "lucide-react";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 export default function RiskAssessmentPage() {
-  const [form, setForm] = useState<RiskForm>({
+  const [stateList, setStateList] = useState<string[]>([]);
+  const [districtList, setDistrictList] = useState<string[]>([]);
+  const [cropList, setCropList] = useState<any[]>([]);
+
+  const [formData, setFormData] = useState({
     state: "",
     district: "",
     crop: "",
-    landType: "",
-    irrigationType: "",
-    farmSize: "",
+    season: "Kharif",
+    irrigationType: "Canal",
+    landType: "Lowland (Submergence prone)",
   });
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
-  const districts = DISTRICTS_BY_STATE[form.state] ?? [];
+  const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [riskData, setRiskData] = useState<any | null>(null);
+  const [showResetModal, setShowResetModal] = useState(false);
 
-  function validate(): boolean {
-    const e: FormErrors = {};
-    if (!form.state) e.state = "Please select a state.";
-    if (!form.district) e.district = "Please select a district.";
-    if (!form.crop) e.crop = "Please select a crop.";
-    if (!form.landType) e.landType = "Please select a land type.";
-    if (!form.irrigationType) e.irrigationType = "Please select an irrigation type.";
-    if (form.farmSize && (isNaN(Number(form.farmSize)) || Number(form.farmSize) <= 0))
-      e.farmSize = "Farm size must be a positive number.";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  }
+  const errorSummaryRef = useRef<HTMLDivElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) {
-    const { name, value } = e.target;
-    setForm((f) => ({
-      ...f,
-      [name]: value,
-      ...(name === "state" ? { district: "" } : {}),
-    }));
-    setErrors((err) => ({ ...err, [name]: undefined }));
-  }
+  // Load initial states and crops
+  useEffect(() => {
+    async function loadData() {
+      setIsDataLoading(true);
+      try {
+        const [statesRes, cropsRes] = await Promise.all([
+          fetch("/api/regions?list=states").then((r) => r.json()),
+          fetch("/api/crops").then((r) => r.json()),
+        ]);
+        if (statesRes.success) {
+          setStateList(statesRes.data);
+          if (statesRes.data.length > 0 && !formData.state) {
+            setFormData((prev) => ({ ...prev, state: "Maharashtra" }));
+          }
+        }
+        if (cropsRes.success) {
+          setCropList(cropsRes.data);
+          if (cropsRes.data.length > 0 && !formData.crop) {
+            setFormData((prev) => ({ ...prev, crop: "Cotton" }));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load metadata", err);
+      } finally {
+        setIsDataLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
-  function handleSubmit(e: React.FormEvent) {
+  // Cascade districts
+  useEffect(() => {
+    if (!formData.state) {
+      setDistrictList([]);
+      return;
+    }
+    async function fetchDistricts() {
+      try {
+        const res = await fetch(`/api/regions?state=${encodeURIComponent(formData.state)}&list=districts`);
+        const json = await res.json();
+        if (json.success) {
+          setDistrictList(json.data);
+          if (json.data.length > 0) {
+            setFormData((prev) => ({
+              ...prev,
+              district: json.data.includes(prev.district) ? prev.district : json.data[0],
+            }));
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load districts", e);
+      }
+    }
+    fetchDistricts();
+  }, [formData.state]);
+
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {};
+    if (!formData.state) errs.state = "Please select a state.";
+    if (!formData.district) errs.district = "Please select a district.";
+    if (!formData.crop) errs.crop = "Please select a crop.";
+    setClientErrors(errs);
+    if (Object.keys(errs).length > 0) {
+      errorSummaryRef.current?.focus();
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    setLoading(true);
-    setTimeout(() => { setLoading(false); setSubmitted(true); }, 1600);
-  }
+
+    setIsLoading(true);
+    try {
+      const url = `/api/risk-assessment?district=${encodeURIComponent(formData.district)}&crop=${encodeURIComponent(formData.crop)}&season=${encodeURIComponent(formData.season)}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.success) {
+        setRiskData(json);
+        setTimeout(() => {
+          resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
+    } catch (e) {
+      console.error("Risk evaluation failed", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setFormData({
+      state: stateList[0] || "Maharashtra",
+      district: districtList[0] || "Aurangabad",
+      crop: "Cotton",
+      season: "Kharif",
+      irrigationType: "Canal",
+      landType: "Lowland (Submergence prone)",
+    });
+    setClientErrors({});
+    setRiskData(null);
+    setShowResetModal(false);
+  };
 
   return (
-    <div style={{ padding: "3rem 0 5rem" }}>
-      <div className="section-container" style={{ maxWidth: "760px" }}>
-        <header style={{ marginBottom: "2rem" }}>
-          <span className="badge badge-amber" style={{ marginBottom: "0.75rem" }}>
-            Risk Tool
-          </span>
-          <h1
-            style={{
-              fontSize: "clamp(1.75rem, 4vw, 2.25rem)",
-              fontWeight: 800,
-              color: "var(--color-neutral-900)",
-              letterSpacing: "-0.025em",
-              marginBottom: "0.625rem",
-            }}
-          >
-            Farmer Risk Assessment
+    <div style={{ padding: "2.5rem 0 5rem" }}>
+      <div className="section-container" style={{ maxWidth: "980px" }}>
+        {/* Breadcrumbs */}
+        <nav aria-label="Breadcrumb" style={{ marginBottom: "1rem" }}>
+          <ol style={{ display: "flex", gap: "0.5rem", listStyle: "none", fontSize: "0.875rem", color: "var(--color-neutral-500)" }}>
+            <li><Link href="/" style={{ color: "var(--color-primary)", textDecoration: "none" }}>Home</Link></li>
+            <li>/</li>
+            <li aria-current="page" style={{ color: "var(--color-neutral-700)", fontWeight: 600 }}>Farmer Risk Assessment</li>
+          </ol>
+        </nav>
+
+        <header style={{ marginBottom: "2.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "0.5rem" }}>
+            <span className="badge badge-warning">IMD &amp; NRSC Sourced</span>
+            <span className="badge badge-neutral">Multi-Factor Vulnerability</span>
+          </div>
+          <h1 style={{ fontSize: "clamp(1.75rem, 4vw, 2.375rem)", fontWeight: 800, color: "var(--color-neutral-900)", letterSpacing: "-0.025em", marginBottom: "0.5rem" }}>
+            Agricultural Risk &amp; Vulnerability Assessment
           </h1>
-          <p style={{ color: "var(--color-neutral-600)", fontSize: "1.0625rem", lineHeight: 1.65 }}>
-            Understand drought, flood, price-volatility, and soil-degradation risks
-            for your field based on district-level government data.
+          <p style={{ fontSize: "1.0625rem", color: "var(--color-neutral-600)", lineHeight: 1.6, maxWidth: "780px" }}>
+            Evaluate compound agricultural risks — including meteorological drought frequency, flood hazard classification, mandi price volatility, and seasonal pest pressures.
           </p>
         </header>
 
-        <div className="alert alert-warning" style={{ marginBottom: "2rem" }}>
-          <strong>Phase 1 note:</strong> Risk scoring from live datasets will be
-          activated in Phase 2. This form validates the input pipeline and shows
-          the structure of the risk output.
-        </div>
-
-        {submitted ? (
-          <div>
-            <div className="alert alert-success" style={{ marginBottom: "1.5rem" }}>
-              Input validated. Risk score computation will run in Phase 2 once the
-              dataset API is connected.
+        {/* Error Summary */}
+        {Object.keys(clientErrors).length > 0 && (
+          <div ref={errorSummaryRef} tabIndex={-1} role="alert" className="alert alert-danger" style={{ marginBottom: "2rem", outline: "none" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <AlertCircle size={18} />
+              <span>Please select all required location and crop fields.</span>
             </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "1rem",
-                marginBottom: "1.5rem",
-              }}
-            >
-              {RISK_CATEGORIES.map(({ key, label, description }) => (
-                <div
-                  key={key}
-                  className="card"
-                  style={{
-                    borderLeft: "4px solid var(--color-border)",
-                    padding: "1.25rem",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    <h3 style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--color-neutral-900)" }}>
-                      {label}
-                    </h3>
-                    <span
-                      className="skeleton"
-                      style={{ width: 48, height: 22, borderRadius: 4 }}
-                      aria-label="Score loading"
-                    />
-                  </div>
-                  <p style={{ fontSize: "0.8125rem", color: "var(--color-muted)", lineHeight: 1.6 }}>
-                    {description}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <p
-              className="alert alert-info"
-              style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}
-            >
-              Skeleton cards above show how risk scores will be displayed. Each
-              score (Low / Medium / High) will link to the underlying dataset used.
-            </p>
-
-            <button
-              className="btn btn-outline"
-              onClick={() => { setForm({ state: "", district: "", crop: "", landType: "", irrigationType: "", farmSize: "" }); setSubmitted(false); }}
-            >
-              Run Another Assessment
-            </button>
           </div>
-        ) : (
-          <form
-            onSubmit={handleSubmit}
-            noValidate
-            aria-label="Farmer risk assessment form"
-            className="card"
-            style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
-          >
+        )}
+
+        {/* Form Card */}
+        <form onSubmit={handleSubmit} noValidate style={{ background: "#ffffff", border: "1px solid var(--color-border)", borderRadius: 12, padding: "2rem", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", marginBottom: "3rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "2rem" }}>
             {/* State */}
             <div>
-              <label htmlFor="risk-state" className="form-label">
-                State <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
+              <label htmlFor="state-field" className="form-label">
+                State <span style={{ color: "#dc2626" }}>*</span>
               </label>
-              <div style={{ position: "relative" }}>
-                <select id="risk-state" name="state" className={`form-select${errors.state ? " error" : ""}`}
-                  value={form.state} onChange={handleChange} aria-required="true"
-                  style={{ paddingRight: "2.5rem" }}>
-                  <option value="">Select state</option>
-                  {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-                <ChevronDown size={16} aria-hidden="true" style={{ position: "absolute", right: "0.875rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-neutral-400)" }} />
-              </div>
-              {errors.state && <p className="form-error" role="alert">{errors.state}</p>}
+              <select
+                id="state-field"
+                className={`form-select ${clientErrors.state ? "form-input-error" : ""}`}
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                disabled={isLoading || isDataLoading}
+                required
+              >
+                <option value="">Select State</option>
+                {stateList.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
             </div>
 
             {/* District */}
             <div>
-              <label htmlFor="risk-district" className="form-label">
-                District <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
+              <label htmlFor="district-field" className="form-label">
+                District <span style={{ color: "#dc2626" }}>*</span>
               </label>
-              <div style={{ position: "relative" }}>
-                <select id="risk-district" name="district" className={`form-select${errors.district ? " error" : ""}`}
-                  value={form.district} onChange={handleChange}
-                  disabled={!form.state || districts.length === 0}
-                  aria-required="true" style={{ paddingRight: "2.5rem" }}>
-                  <option value="">{form.state ? (districts.length > 0 ? "Select district" : "Full list in Phase 2") : "Select state first"}</option>
-                  {districts.map((d) => <option key={d} value={d}>{d}</option>)}
-                </select>
-                <ChevronDown size={16} aria-hidden="true" style={{ position: "absolute", right: "0.875rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-neutral-400)" }} />
-              </div>
-              {errors.district && <p className="form-error" role="alert">{errors.district}</p>}
+              <select
+                id="district-field"
+                className={`form-select ${clientErrors.district ? "form-input-error" : ""}`}
+                value={formData.district}
+                onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                disabled={isLoading || isDataLoading || districtList.length === 0}
+                required
+              >
+                <option value="">Select District</option>
+                {districtList.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
             </div>
 
             {/* Crop */}
             <div>
-              <label htmlFor="risk-crop" className="form-label">
-                Crop <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
+              <label htmlFor="crop-field" className="form-label">
+                Crop <span style={{ color: "#dc2626" }}>*</span>
               </label>
-              <div style={{ position: "relative" }}>
-                <select id="risk-crop" name="crop" className={`form-select${errors.crop ? " error" : ""}`}
-                  value={form.crop} onChange={handleChange} aria-required="true"
-                  style={{ paddingRight: "2.5rem" }}>
-                  <option value="">Select crop</option>
-                  {MAJOR_CROPS.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-                <ChevronDown size={16} aria-hidden="true" style={{ position: "absolute", right: "0.875rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-neutral-400)" }} />
-              </div>
-              {errors.crop && <p className="form-error" role="alert">{errors.crop}</p>}
+              <select
+                id="crop-field"
+                className={`form-select ${clientErrors.crop ? "form-input-error" : ""}`}
+                value={formData.crop}
+                onChange={(e) => setFormData({ ...formData, crop: e.target.value })}
+                disabled={isLoading || isDataLoading}
+                required
+              >
+                <option value="">Select Crop</option>
+                {cropList.map((c) => (
+                  <option key={c.name} value={c.name}>{c.name}</option>
+                ))}
+              </select>
             </div>
 
-            {/* Land type */}
+            {/* Season */}
             <div>
-              <label htmlFor="risk-land" className="form-label">
-                Land Type <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
-              </label>
-              <div style={{ position: "relative" }}>
-                <select id="risk-land" name="landType" className={`form-select${errors.landType ? " error" : ""}`}
-                  value={form.landType} onChange={handleChange} aria-required="true"
-                  style={{ paddingRight: "2.5rem" }}>
-                  <option value="">Select land type</option>
-                  {LAND_TYPES.map((l) => <option key={l} value={l}>{l}</option>)}
-                </select>
-                <ChevronDown size={16} aria-hidden="true" style={{ position: "absolute", right: "0.875rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-neutral-400)" }} />
-              </div>
-              {errors.landType && <p className="form-error" role="alert">{errors.landType}</p>}
+              <label htmlFor="season-field" className="form-label">Season</label>
+              <select
+                id="season-field"
+                className="form-select"
+                value={formData.season}
+                onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+                disabled={isLoading}
+              >
+                <option value="Kharif">Kharif (Monsoon)</option>
+                <option value="Rabi">Rabi (Winter)</option>
+                <option value="Zaid">Zaid (Summer)</option>
+                <option value="Annual">Annual</option>
+              </select>
             </div>
 
             {/* Irrigation */}
             <div>
-              <label htmlFor="risk-irrigation" className="form-label">
-                Irrigation Type <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
-              </label>
-              <div style={{ position: "relative" }}>
-                <select id="risk-irrigation" name="irrigationType" className={`form-select${errors.irrigationType ? " error" : ""}`}
-                  value={form.irrigationType} onChange={handleChange} aria-required="true"
-                  style={{ paddingRight: "2.5rem" }}>
-                  <option value="">Select irrigation type</option>
-                  {IRRIGATION_TYPES.map((i) => <option key={i} value={i}>{i}</option>)}
-                </select>
-                <ChevronDown size={16} aria-hidden="true" style={{ position: "absolute", right: "0.875rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-neutral-400)" }} />
-              </div>
-              {errors.irrigationType && <p className="form-error" role="alert">{errors.irrigationType}</p>}
+              <label htmlFor="irrigation-field" className="form-label">Water Source</label>
+              <select
+                id="irrigation-field"
+                className="form-select"
+                value={formData.irrigationType}
+                onChange={(e) => setFormData({ ...formData, irrigationType: e.target.value })}
+                disabled={isLoading}
+              >
+                <option value="Canal">Canal Irrigation</option>
+                <option value="Tubewell / Borewell">Tubewell / Borewell</option>
+                <option value="Drip / Sprinkler">Drip / Sprinkler</option>
+                <option value="Rainfed">Rainfed (Monsoon only)</option>
+              </select>
             </div>
 
-            {/* Farm size */}
+            {/* Land Topography */}
             <div>
-              <label htmlFor="risk-size" className="form-label">
-                Farm Size (hectares) — optional
-              </label>
-              <input id="risk-size" name="farmSize" type="number"
-                className={`form-input${errors.farmSize ? " error" : ""}`}
-                value={form.farmSize} onChange={handleChange}
-                placeholder="e.g. 1.5" min="0.01" step="0.01"
-                aria-describedby={errors.farmSize ? "size-error" : "size-hint"} />
-              {errors.farmSize
-                ? <p id="size-error" className="form-error" role="alert">{errors.farmSize}</p>
-                : <p id="size-hint" className="form-hint">Farm size helps contextualise exposure to economic loss.</p>}
+              <label htmlFor="land-field" className="form-label">Land Topography</label>
+              <select
+                id="land-field"
+                className="form-select"
+                value={formData.landType}
+                onChange={(e) => setFormData({ ...formData, landType: e.target.value })}
+                disabled={isLoading}
+              >
+                <option value="Upland (Well-drained)">Upland (Well-drained)</option>
+                <option value="Medium Land">Medium Land</option>
+                <option value="Lowland (Submergence prone)">Lowland (Waterlogging prone)</option>
+                <option value="Coastal / Saline">Coastal / Saline affected</option>
+              </select>
             </div>
+          </div>
 
-            <div style={{ display: "flex", gap: "0.5rem", background: "var(--color-neutral-50)", border: "1px solid var(--color-border)", borderRadius: 7, padding: "0.875rem 1rem", fontSize: "0.8125rem", color: "var(--color-neutral-600)" }}>
-              <Info size={15} style={{ flexShrink: 0, marginTop: "1px", color: "var(--color-primary)" }} />
-              <span>Risk scores use IMD rainfall records, eNAM price data, NBSS soil maps, and NRSC flood hazard layers. All sources are openly licensed.</span>
-            </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "1rem", borderTop: "1px solid var(--color-neutral-200)" }}>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => setShowResetModal(true)}
+              disabled={isLoading}
+            >
+              <RotateCcw size={16} /> Reset
+            </button>
 
-            <div style={{ display: "flex", gap: "0.875rem", flexWrap: "wrap" }}>
-              <button type="submit" className="btn btn-primary" disabled={loading} aria-busy={loading} style={{ minWidth: 180 }}>
-                {loading ? (
-                  <><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />Analysing…</>
-                ) : (
-                  <>Get Risk Profile<ArrowRight size={16} /></>
-                )}
-              </button>
-              <button type="button" className="btn btn-ghost" onClick={() => { setForm({ state: "", district: "", crop: "", landType: "", irrigationType: "", farmSize: "" }); setErrors({}); }} disabled={loading}>
-                Clear Form
-              </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isLoading || isDataLoading}
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+            >
+              {isLoading ? "Evaluating Risk Vectors..." : "Analyze Agricultural Risks"}
+              <ArrowRight size={16} />
+            </button>
+          </div>
+        </form>
+
+        {/* Results */}
+        {riskData && (
+          <div ref={resultRef} style={{ animation: "fadeIn 0.3s ease" }}>
+            <div style={{ background: "#ffffff", border: "1px solid var(--color-border)", borderRadius: 12, padding: "2rem", marginBottom: "2rem" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "1rem", marginBottom: "1.5rem", paddingBottom: "1.25rem", borderBottom: "1px solid var(--color-neutral-200)" }}>
+                <div>
+                  <span className="badge badge-neutral" style={{ marginBottom: "0.25rem" }}>
+                    District Risk Profile
+                  </span>
+                  <h2 style={{ fontSize: "1.375rem", fontWeight: 800, color: "var(--color-neutral-900)", margin: 0 }}>
+                    {riskData.crop} Risk Matrix for {riskData.district}
+                  </h2>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <span
+                    className={`badge ${
+                      riskData.riskProfile.overallRiskRating === "High Risk"
+                        ? "badge-danger"
+                        : riskData.riskProfile.overallRiskRating === "Moderate Risk"
+                        ? "badge-warning"
+                        : "badge-success"
+                    }`}
+                    style={{ fontSize: "0.9375rem", padding: "0.35rem 0.85rem" }}
+                  >
+                    {riskData.riskProfile.overallRiskRating} ({riskData.riskProfile.riskScore}/100)
+                  </span>
+                </div>
+              </div>
+
+              {/* 4 Risk Dimension Cards */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "2rem" }}>
+                {/* 1. Meteorological Drought */}
+                <div style={{ background: "var(--color-neutral-50)", padding: "1.25rem", borderRadius: 8, border: "1px solid var(--color-border)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#d97706", marginBottom: "0.5rem" }}>
+                    <CloudRain size={20} />
+                    <strong style={{ fontSize: "0.875rem", color: "var(--color-neutral-900)" }}>Drought Risk</strong>
+                  </div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--color-neutral-900)", margin: "0.25rem 0" }}>
+                    {riskData.riskProfile.droughtRiskPct}%
+                  </div>
+                  <p style={{ fontSize: "0.75rem", color: "var(--color-neutral-600)", margin: 0 }}>
+                    Historical frequency of seasonal rainfall deficit (&gt;19% below normal).
+                  </p>
+                  <span style={{ fontSize: "0.6875rem", color: "var(--color-neutral-400)", display: "block", marginTop: "0.5rem" }}>
+                    Source: {riskData.provenance.droughtSource}
+                  </span>
+                </div>
+
+                {/* 2. Flood Hazard */}
+                <div style={{ background: "var(--color-neutral-50)", padding: "1.25rem", borderRadius: 8, border: "1px solid var(--color-border)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#2563eb", marginBottom: "0.5rem" }}>
+                    <Droplets size={20} />
+                    <strong style={{ fontSize: "0.875rem", color: "var(--color-neutral-900)" }}>Inundation Hazard</strong>
+                  </div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--color-neutral-900)", margin: "0.25rem 0" }}>
+                    {riskData.riskProfile.floodRiskClass}
+                  </div>
+                  <p style={{ fontSize: "0.75rem", color: "var(--color-neutral-600)", margin: 0 }}>
+                    Satellite-derived flood inundation vulnerability mapping.
+                  </p>
+                  <span style={{ fontSize: "0.6875rem", color: "var(--color-neutral-400)", display: "block", marginTop: "0.5rem" }}>
+                    Source: {riskData.provenance.floodSource}
+                  </span>
+                </div>
+
+                {/* 3. Market Price Volatility */}
+                <div style={{ background: "var(--color-neutral-50)", padding: "1.25rem", borderRadius: 8, border: "1px solid var(--color-border)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#dc2626", marginBottom: "0.5rem" }}>
+                    <TrendingDown size={20} />
+                    <strong style={{ fontSize: "0.875rem", color: "var(--color-neutral-900)" }}>Price Volatility</strong>
+                  </div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--color-neutral-900)", margin: "0.25rem 0" }}>
+                    CV {riskData.riskProfile.marketVolatilityCV}%
+                  </div>
+                  <p style={{ fontSize: "0.75rem", color: "var(--color-neutral-600)", margin: 0 }}>
+                    Coefficient of Variation across wholesale APMC mandi arrivals.
+                  </p>
+                  <span style={{ fontSize: "0.6875rem", color: "var(--color-neutral-400)", display: "block", marginTop: "0.5rem" }}>
+                    Source: {riskData.provenance.marketSource}
+                  </span>
+                </div>
+
+                {/* 4. Pest Pressure */}
+                <div style={{ background: "var(--color-neutral-50)", padding: "1.25rem", borderRadius: 8, border: "1px solid var(--color-border)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#7c3aed", marginBottom: "0.5rem" }}>
+                    <Bug size={20} />
+                    <strong style={{ fontSize: "0.875rem", color: "var(--color-neutral-900)" }}>Pest Vulnerability</strong>
+                  </div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--color-neutral-900)", margin: "0.25rem 0" }}>
+                    {riskData.riskProfile.pestVulnerability}
+                  </div>
+                  <p style={{ fontSize: "0.75rem", color: "var(--color-neutral-600)", margin: 0 }}>
+                    Seasonal pest resurgence index for {riskData.crop}.
+                  </p>
+                  <span style={{ fontSize: "0.6875rem", color: "var(--color-neutral-400)", display: "block", marginTop: "0.5rem" }}>
+                    Source: ICAR Crop Protection Division
+                  </span>
+                </div>
+              </div>
+
+              {/* Key Drivers & Mitigation Advice */}
+              <div style={{ background: "var(--color-green-50)", borderRadius: 10, padding: "1.5rem", border: "1px solid var(--color-green-200)", marginBottom: "1.5rem" }}>
+                <h3 style={{ fontSize: "1.0625rem", fontWeight: 700, color: "var(--color-green-900)", marginBottom: "0.75rem" }}>
+                  Primary Risk Drivers Identified
+                </h3>
+                <p style={{ fontSize: "0.875rem", color: "var(--color-neutral-800)", marginBottom: "1rem", lineHeight: 1.5 }}>
+                  {riskData.riskProfile.keyDrivers}
+                </p>
+
+                <h3 style={{ fontSize: "1.0625rem", fontWeight: 700, color: "var(--color-green-900)", marginBottom: "0.75rem" }}>
+                  Recommended Risk Mitigation Strategy
+                </h3>
+                <p style={{ fontSize: "0.875rem", color: "var(--color-neutral-800)", margin: 0, lineHeight: 1.5 }}>
+                  {riskData.riskProfile.mitigationAdvice}
+                </p>
+              </div>
+
+              {/* Bottom Actions */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                <Link href="/yield-assessment" className="btn btn-outline">
+                  Calculate Combined Yield Potential &rarr;
+                </Link>
+                <button type="button" onClick={() => window.print()} className="btn btn-primary" style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                  <Printer size={16} /> Print Risk Assessment
+                </button>
+              </div>
             </div>
-            <p style={{ fontSize: "0.8125rem", color: "var(--color-muted)" }}>
-              <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span> Required fields
-            </p>
-          </form>
+          </div>
         )}
+
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showResetModal}
+          title="Reset Risk Parameters?"
+          message="This will reset all selected fields back to default options."
+          confirmLabel="Reset"
+          onConfirm={handleReset}
+          onCancel={() => setShowResetModal(false)}
+        />
       </div>
     </div>
   );
