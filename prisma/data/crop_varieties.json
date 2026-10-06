@@ -1,0 +1,100 @@
+[
+  {
+    "cropName": "Wheat",
+    "varietyName": "HD 2967",
+    "durationDays": 140,
+    "characteristics": "High yielding, resistant to yellow and brown rusts, broad adaptability across North-Western Plains Zone (NWPZ)",
+    "recommendedZone": "North-Western Plains Zone (Punjab, Haryana, Western UP, Rajasthan)"
+  },
+  {
+    "cropName": "Wheat",
+    "varietyName": "PBW 343",
+    "durationDays": 135,
+    "characteristics": "Semi-dwarf variety with high tiller capacity and good chapati-making quality",
+    "recommendedZone": "Punjab, Haryana, Delhi, Western UP"
+  },
+  {
+    "cropName": "Wheat",
+    "varietyName": "HD 3086 (Pusa Gautami)",
+    "durationDays": 138,
+    "characteristics": "Terminal heat stress tolerant, high grain protein (12.5%), resistant to stripe rust",
+    "recommendedZone": "North-Western and North-Eastern Plains Zones"
+  },
+  {
+    "cropName": "Rice",
+    "varietyName": "Pusa Basmati 1121",
+    "durationDays": 145,
+    "characteristics": "Extra-long slender aromatic grains (cooks to 22mm length), high export value",
+    "recommendedZone": "Punjab, Haryana, Delhi, Western UP"
+  },
+  {
+    "cropName": "Rice",
+    "varietyName": "Swarna (MTU 7029)",
+    "durationDays": 150,
+    "characteristics": "High yield potential in lowlands, submergence tolerance, medium slender grains",
+    "recommendedZone": "Eastern India (WB, Odisha, Bihar, AP)"
+  },
+  {
+    "cropName": "Rice",
+    "varietyName": "PR 126",
+    "durationDays": 123,
+    "characteristics": "Short duration, saves 20-25% irrigation water, high resistance to bacterial blight",
+    "recommendedZone": "Punjab, Haryana"
+  },
+  {
+    "cropName": "Mustard",
+    "varietyName": "Pusa Jai Kisan (Bio-902)",
+    "durationDays": 130,
+    "characteristics": "First somatic hybrid mustard variety, high oil content (40%), drought hardy",
+    "recommendedZone": "Rajasthan, Gujarat, Maharashtra, Haryana"
+  },
+  {
+    "cropName": "Mustard",
+    "varietyName": "RH 749",
+    "durationDays": 140,
+    "characteristics": "High seed yield (26-28 q/ha), bold seeds, resistant to white rust",
+    "recommendedZone": "Haryana, Punjab, Jammu & Kashmir"
+  },
+  {
+    "cropName": "Chickpea (Gram)",
+    "varietyName": "JG 11",
+    "durationDays": 100,
+    "characteristics": "Desi type, high resistance to Fusarium wilt, excellent for rainfed conditions",
+    "recommendedZone": "Central and Southern India (MP, Maharashtra, Karnataka, AP)"
+  },
+  {
+    "cropName": "Chickpea (Gram)",
+    "varietyName": "Pusa 372",
+    "durationDays": 120,
+    "characteristics": "Wide adaptability, moderate resistance to Ascochyta blight and root rot",
+    "recommendedZone": "North-Eastern and North-Western Plains"
+  },
+  {
+    "cropName": "Soybean",
+    "varietyName": "JS 335",
+    "durationDays": 100,
+    "characteristics": "Widely adapted across central India, good pod shattering resistance, 18-20% oil content",
+    "recommendedZone": "Madhya Pradesh, Maharashtra, Rajasthan, Karnataka"
+  },
+  {
+    "cropName": "Soybean",
+    "varietyName": "JS 95-60",
+    "durationDays": 85,
+    "characteristics": "Early maturing, suitable for rainfed tracts and double cropping systems",
+    "recommendedZone": "Madhya Pradesh, Maharashtra"
+  },
+  {
+    "cropName": "Cotton",
+    "varietyName": "Bt Cotton RCH 134",
+    "durationDays": 160,
+    "characteristics": "Bollworm resistant transgenic hybrid, big bolls, good boll opening",
+    "recommendedZone": "North and Central Cotton Zones"
+  },
+  {
+    "cropName": "Sugarcane",
+    "varietyName": "Co 0238 (Karan 4)",
+    "durationDays": 330,
+    "characteristics": "High cane yield (85-100 t/ha), high sucrose content (18-19%), revolutionized sugar recovery in Sub-tropical India",
+    "recommendedZone": "Punjab, Haryana, Uttar Pradesh, Bihar"
+  }
+]

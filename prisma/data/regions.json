@@ -1,0 +1,299 @@
+[
+  {
+    "state": "Punjab",
+    "district": "Ludhiana",
+    "stateCode": "PB",
+    "agroClimaticZone": "Trans-Gangetic Plains",
+    "latitude": 30.9010,
+    "longitude": 75.8573,
+    "primarySoilType": "Alluvial (Loamy)"
+  },
+  {
+    "state": "Punjab",
+    "district": "Amritsar",
+    "stateCode": "PB",
+    "agroClimaticZone": "Trans-Gangetic Plains",
+    "latitude": 31.6340,
+    "longitude": 74.8723,
+    "primarySoilType": "Alluvial (Sandy Loam)"
+  },
+  {
+    "state": "Punjab",
+    "district": "Bathinda",
+    "stateCode": "PB",
+    "agroClimaticZone": "Trans-Gangetic Plains",
+    "latitude": 30.2110,
+    "longitude": 74.9455,
+    "primarySoilType": "Desert / Sandy Alluvial"
+  },
+  {
+    "state": "Punjab",
+    "district": "Patiala",
+    "stateCode": "PB",
+    "agroClimaticZone": "Trans-Gangetic Plains",
+    "latitude": 30.3398,
+    "longitude": 76.3869,
+    "primarySoilType": "Alluvial (Clay Loam)"
+  },
+  {
+    "state": "Haryana",
+    "district": "Karnal",
+    "stateCode": "HR",
+    "agroClimaticZone": "Trans-Gangetic Plains",
+    "latitude": 29.6857,
+    "longitude": 76.9905,
+    "primarySoilType": "Alluvial (Loam)"
+  },
+  {
+    "state": "Haryana",
+    "district": "Hisar",
+    "stateCode": "HR",
+    "agroClimaticZone": "Trans-Gangetic Plains",
+    "latitude": 29.1492,
+    "longitude": 75.7217,
+    "primarySoilType": "Sandy Loam"
+  },
+  {
+    "state": "Haryana",
+    "district": "Sirsa",
+    "stateCode": "HR",
+    "agroClimaticZone": "Trans-Gangetic Plains",
+    "latitude": 29.5349,
+    "longitude": 75.0290,
+    "primarySoilType": "Desert / Light Sandy"
+  },
+  {
+    "state": "Uttar Pradesh",
+    "district": "Varanasi",
+    "stateCode": "UP",
+    "agroClimaticZone": "Middle Gangetic Plains",
+    "latitude": 25.3176,
+    "longitude": 82.9739,
+    "primarySoilType": "Alluvial (Silty Loam)"
+  },
+  {
+    "state": "Uttar Pradesh",
+    "district": "Meerut",
+    "stateCode": "UP",
+    "agroClimaticZone": "Upper Gangetic Plains",
+    "latitude": 28.9845,
+    "longitude": 77.7064,
+    "primarySoilType": "Alluvial (Deep Loam)"
+  },
+  {
+    "state": "Uttar Pradesh",
+    "district": "Aligarh",
+    "stateCode": "UP",
+    "agroClimaticZone": "Upper Gangetic Plains",
+    "latitude": 27.8974,
+    "longitude": 78.0880,
+    "primarySoilType": "Alluvial (Slightly Alkaline)"
+  },
+  {
+    "state": "Uttar Pradesh",
+    "district": "Gorakhpur",
+    "stateCode": "UP",
+    "agroClimaticZone": "Middle Gangetic Plains",
+    "latitude": 26.7606,
+    "longitude": 83.3732,
+    "primarySoilType": "Tarai / Silty Alluvial"
+  },
+  {
+    "state": "Maharashtra",
+    "district": "Nashik",
+    "stateCode": "MH",
+    "agroClimaticZone": "Western Plateau and Hills",
+    "latitude": 19.9975,
+    "longitude": 73.7898,
+    "primarySoilType": "Medium Black (Clayey)"
+  },
+  {
+    "state": "Maharashtra",
+    "district": "Pune",
+    "stateCode": "MH",
+    "agroClimaticZone": "Western Plateau and Hills",
+    "latitude": 18.5204,
+    "longitude": 73.8567,
+    "primarySoilType": "Medium Black / Red Gravelly"
+  },
+  {
+    "state": "Maharashtra",
+    "district": "Aurangabad",
+    "stateCode": "MH",
+    "agroClimaticZone": "Western Plateau and Hills",
+    "latitude": 19.8762,
+    "longitude": 75.3433,
+    "primarySoilType": "Deep Black Soil (Vertisol)"
+  },
+  {
+    "state": "Maharashtra",
+    "district": "Nagpur",
+    "stateCode": "MH",
+    "agroClimaticZone": "Central Plateau and Hills",
+    "latitude": 21.1458,
+    "longitude": 79.0882,
+    "primarySoilType": "Black Cotton Soil"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Indore",
+    "stateCode": "MP",
+    "agroClimaticZone": "Central Plateau and Hills (Malwa)",
+    "latitude": 22.7196,
+    "longitude": 75.8577,
+    "primarySoilType": "Medium to Deep Black"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Ujjain",
+    "stateCode": "MP",
+    "agroClimaticZone": "Central Plateau and Hills (Malwa)",
+    "latitude": 23.1765,
+    "longitude": 75.7885,
+    "primarySoilType": "Deep Black"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Jabalpur",
+    "stateCode": "MP",
+    "agroClimaticZone": "Central Plateau and Hills",
+    "latitude": 23.1815,
+    "longitude": 79.9864,
+    "primarySoilType": "Clayey / Mixed Red and Black"
+  },
+  {
+    "state": "Karnataka",
+    "district": "Belagavi",
+    "stateCode": "KA",
+    "agroClimaticZone": "Southern Plateau and Hills",
+    "latitude": 15.8497,
+    "longitude": 74.4977,
+    "primarySoilType": "Medium Black / Laterite"
+  },
+  {
+    "state": "Karnataka",
+    "district": "Dharwad",
+    "stateCode": "KA",
+    "agroClimaticZone": "Southern Plateau and Hills",
+    "latitude": 15.4589,
+    "longitude": 75.0078,
+    "primarySoilType": "Black Cotton Soil"
+  },
+  {
+    "state": "Karnataka",
+    "district": "Mysuru",
+    "stateCode": "KA",
+    "agroClimaticZone": "Southern Plateau and Hills",
+    "latitude": 12.2958,
+    "longitude": 76.6394,
+    "primarySoilType": "Red Sandy Loam"
+  },
+  {
+    "state": "Andhra Pradesh",
+    "district": "Guntur",
+    "stateCode": "AP",
+    "agroClimaticZone": "East Coast Plains and Hills",
+    "latitude": 16.3067,
+    "longitude": 80.4365,
+    "primarySoilType": "Black Cotton / Coastal Alluvial"
+  },
+  {
+    "state": "Andhra Pradesh",
+    "district": "Krishna",
+    "stateCode": "AP",
+    "agroClimaticZone": "East Coast Plains and Hills",
+    "latitude": 16.1809,
+    "longitude": 81.1303,
+    "primarySoilType": "Deltaic Alluvial / Heavy Clay"
+  },
+  {
+    "state": "Gujarat",
+    "district": "Rajkot",
+    "stateCode": "GJ",
+    "agroClimaticZone": "Gujarat Plains and Hills",
+    "latitude": 22.3039,
+    "longitude": 70.8022,
+    "primarySoilType": "Medium Black / Calcareous"
+  },
+  {
+    "state": "Gujarat",
+    "district": "Surat",
+    "stateCode": "GJ",
+    "agroClimaticZone": "Gujarat Plains and Hills",
+    "latitude": 21.1702,
+    "longitude": 72.8311,
+    "primarySoilType": "Deep Black / Coastal Alluvium"
+  },
+  {
+    "state": "Rajasthan",
+    "district": "Sri Ganganagar",
+    "stateCode": "RJ",
+    "agroClimaticZone": "Western Dry Region",
+    "latitude": 29.9038,
+    "longitude": 73.8772,
+    "primarySoilType": "Alluvial Desert Loam (Canal Irrigated)"
+  },
+  {
+    "state": "Rajasthan",
+    "district": "Kota",
+    "stateCode": "RJ",
+    "agroClimaticZone": "Central Plateau and Hills",
+    "latitude": 25.2138,
+    "longitude": 75.8648,
+    "primarySoilType": "Deep Black Clay"
+  },
+  {
+    "state": "Tamil Nadu",
+    "district": "Thanjavur",
+    "stateCode": "TN",
+    "agroClimaticZone": "East Coast Plains and Hills (Cauvery Delta)",
+    "latitude": 10.7870,
+    "longitude": 79.1378,
+    "primarySoilType": "Deltaic Alluvial / Clayey"
+  },
+  {
+    "state": "Tamil Nadu",
+    "district": "Coimbatore",
+    "stateCode": "TN",
+    "agroClimaticZone": "Southern Plateau and Hills",
+    "latitude": 11.0168,
+    "longitude": 76.9558,
+    "primarySoilType": "Red Loam / Black Soil"
+  },
+  {
+    "state": "West Bengal",
+    "district": "Purba Bardhaman",
+    "stateCode": "WB",
+    "agroClimaticZone": "Lower Gangetic Plains",
+    "latitude": 23.2324,
+    "longitude": 87.8615,
+    "primarySoilType": "Alluvial (Loam to Clay Loam)"
+  },
+  {
+    "state": "West Bengal",
+    "district": "Murshidabad",
+    "stateCode": "WB",
+    "agroClimaticZone": "Lower Gangetic Plains",
+    "latitude": 24.1759,
+    "longitude": 88.2802,
+    "primarySoilType": "Gangetic Alluvial"
+  },
+  {
+    "state": "Bihar",
+    "district": "Patna",
+    "stateCode": "BR",
+    "agroClimaticZone": "Middle Gangetic Plains",
+    "latitude": 25.5941,
+    "longitude": 85.1376,
+    "primarySoilType": "Old Alluvial (Bangar)"
+  },
+  {
+    "state": "Odisha",
+    "district": "Bargarh",
+    "stateCode": "OD",
+    "agroClimaticZone": "Eastern Plateau and Hills",
+    "latitude": 21.3331,
+    "longitude": 83.6186,
+    "primarySoilType": "Red and Yellow / Mixed Alluvial"
+  }
+]

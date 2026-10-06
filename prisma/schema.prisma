@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Prisma schema for KrishiMitra - Crop Yield and Farmer Risk Advising System
+// Phase 2: Authentic Agricultural Data & Database Layer
 
 generator client {
   provider = "prisma-client-js"
@@ -10,60 +10,230 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Crop yield records (loaded from ICRISAT VDSA / MoAFW data) ─────────────
-model CropYield {
-  id         Int    @id @default(autoincrement())
-  state      String
-  district   String
-  crop       String
-  season     String
-  year       Int
-  areaHa     Float  @map("area_ha")       // Area in hectares
-  prodTonnes Float  @map("prod_tonnes")   // Production in tonnes
-  yieldKgHa  Float  @map("yield_kg_ha")   // Yield in kg/hectare
+// ─── 1. Dataset Provenance & Attribution ────────────────────────────────────
+model DatasetSource {
+  id               Int      @id @default(autoincrement())
+  code             String   @unique
+  name             String
+  publisher        String
+  citation         String
+  url              String
+  license          String
+  geographicScope  String   @map("geographic_scope")
+  limitations      String
+  version          String
+  createdAt        DateTime @default(now()) @map("created_at")
 
-  createdAt DateTime @default(now()) @map("created_at")
+  // Relations
+  ingestionLogs    DataIngestionLog[]
+  crops            Crop[]
+  cropVarieties    CropVariety[]
+  soilProfiles     SoilProfile[]
+  weatherData      WeatherObservation[]
+  historicalYields HistoricalYield[]
+  fertilizers      FertilizerRecommendation[]
+  riskProfiles     DistrictRiskProfile[]
 
-  @@index([state, district, crop, season])
-  @@map("crop_yields")
+  @@map("dataset_sources")
 }
 
-// ─── District risk profiles (computed from IMD, eNAM, NBSS, NRSC data) ──────
-model DistrictRisk {
-  id                  Int    @id @default(autoincrement())
-  state               String
-  district            String
-  droughtFrequency    Float  @map("drought_frequency")    // % of years with >19% rainfall deficit
-  floodHazardClass    String @map("flood_hazard_class")   // Low / Medium / High (NRSC)
-  priceVolatilityCV   Float  @map("price_volatility_cv")  // Coefficient of variation (eNAM)
-  soilDegradationRisk String @map("soil_degradation_risk") // Low / Medium / High (NBSS)
-  dataSource          String @map("data_source")
-  referenceYear       Int    @map("reference_year")
+// ─── 2. Data Ingestion & Audit Logs ─────────────────────────────────────────
+model DataIngestionLog {
+  id              Int           @id @default(autoincrement())
+  sourceId        Int           @map("source_id")
+  source          DatasetSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  datasetCode     String        @map("dataset_code")
+  status          String        // SUCCESS, FAILED, PARTIAL
+  recordsIngested Int           @map("records_ingested")
+  recordsSkipped  Int           @map("records_skipped")
+  recordsFailed   Int           @map("records_failed")
+  details         String?       // JSON or text audit details
+  startedAt       DateTime      @default(now()) @map("started_at")
+  completedAt     DateTime?     @map("completed_at")
 
-  createdAt DateTime @default(now()) @map("created_at")
+  @@index([sourceId, status])
+  @@map("data_ingestion_logs")
+}
+
+// ─── 3. Geographic Regions (Districts & Agro-Climatic Zones) ────────────────
+model Region {
+  id                Int      @id @default(autoincrement())
+  state             String
+  district          String
+  stateCode         String?  @map("state_code")
+  agroClimaticZone  String   @map("agro_climatic_zone")
+  latitude          Float?
+  longitude         Float?
+  primarySoilType   String   @map("primary_soil_type")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relations
+  soilProfiles     SoilProfile[]
+  weatherData      WeatherObservation[]
+  historicalYields HistoricalYield[]
+  riskProfiles     DistrictRiskProfile[]
 
   @@unique([state, district])
-  @@map("district_risks")
+  @@index([state])
+  @@index([district])
+  @@map("regions")
 }
 
-// ─── Crop metadata (agronomic profiles) ─────────────────────────────────────
-model CropProfile {
-  id           Int    @id @default(autoincrement())
-  cropName     String @unique @map("crop_name")
-  season       String
-  waterNeedMm  String @map("water_need_mm")
-  soilType     String @map("soil_type")
-  optimalTempC String @map("optimal_temp_c")
-  majorPests   String @map("major_pests")
-  yieldRangeKgHa String @map("yield_range_kg_ha")
-  icarSource   String @map("icar_source")
+// ─── 4. Crops & Agronomic Benchmarks ────────────────────────────────────────
+model Crop {
+  id                 Int           @id @default(autoincrement())
+  name               String        @unique
+  botanicalName      String        @map("botanical_name")
+  category           String        // Cereal, Pulse, Oilseed, Cash Crop, Fibre
+  season             String        // Kharif, Rabi, Zaid, Annual
+  growthDaysMin      Int           @map("growth_days_min")
+  growthDaysMax      Int           @map("growth_days_max")
+  optimalTempMinC    Float         @map("optimal_temp_min_c")
+  optimalTempMaxC    Float         @map("optimal_temp_max_c")
+  optimalRainfallMin Float         @map("optimal_rainfall_min_mm")
+  optimalRainfallMax Float         @map("optimal_rainfall_max_mm")
+  optimalPhMin       Float         @map("optimal_ph_min")
+  optimalPhMax       Float         @map("optimal_ph_max")
+  majorPests         String        @map("major_pests")
+  icarReference      String        @map("icar_reference")
+  sourceId           Int           @map("source_id")
+  source             DatasetSource @relation(fields: [sourceId], references: [id])
+  createdAt          DateTime      @default(now()) @map("created_at")
 
-  createdAt DateTime @default(now()) @map("created_at")
+  // Relations
+  varieties          CropVariety[]
+  historicalYields   HistoricalYield[]
+  fertilizers        FertilizerRecommendation[]
+  riskProfiles       DistrictRiskProfile[]
 
-  @@map("crop_profiles")
+  @@index([category, season])
+  @@map("crops")
 }
 
-// ─── Contact enquiries (Phase 2 — email integration) ────────────────────────
+// ─── 5. Crop Varieties ───────────────────────────────────────────────────────
+model CropVariety {
+  id              Int           @id @default(autoincrement())
+  cropId          Int           @map("crop_id")
+  crop            Crop          @relation(fields: [cropId], references: [id], onDelete: Cascade)
+  varietyName     String        @map("variety_name")
+  durationDays    Int           @map("duration_days")
+  characteristics String        // Resistance to disease, drought tolerance, high yield
+  recommendedZone String        @map("recommended_zone")
+  sourceId        Int           @map("source_id")
+  source          DatasetSource @relation(fields: [sourceId], references: [id])
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  @@unique([cropId, varietyName])
+  @@map("crop_varieties")
+}
+
+// ─── 6. Soil Information by Region ──────────────────────────────────────────
+model SoilProfile {
+  id             Int           @id @default(autoincrement())
+  regionId       Int           @map("region_id")
+  region         Region        @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  soilType       String        @map("soil_type")
+  phMin          Float         @map("ph_min")
+  phMax          Float         @map("ph_max")
+  nStatus        String        @map("n_status") // Low, Medium, High
+  pStatus        String        @map("p_status") // Low, Medium, High
+  kStatus        String        @map("k_status") // Low, Medium, High
+  organicCarbon  Float         @map("organic_carbon_pct") // %
+  texture        String        // Clayey, Sandy Loam, Silty, Alluvial, Black
+  sourceId       Int           @map("source_id")
+  source         DatasetSource @relation(fields: [sourceId], references: [id])
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  @@unique([regionId, soilType])
+  @@map("soil_profiles")
+}
+
+// ─── 7. Weather Observations & Historical Climate ───────────────────────────
+model WeatherObservation {
+  id             Int           @id @default(autoincrement())
+  regionId       Int           @map("region_id")
+  region         Region        @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  year           Int
+  season         String        // Kharif, Rabi, Zaid, Annual
+  rainfallMm     Float         @map("rainfall_mm")
+  tempMinC       Float         @map("temp_min_c")
+  tempMaxC       Float         @map("temp_max_c")
+  humidityPct    Float         @map("humidity_pct")
+  sourceId       Int           @map("source_id")
+  source         DatasetSource @relation(fields: [sourceId], references: [id])
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  @@unique([regionId, year, season])
+  @@index([regionId, season])
+  @@map("weather_observations")
+}
+
+// ─── 8. Historical Crop Yield Records ───────────────────────────────────────
+model HistoricalYield {
+  id             Int           @id @default(autoincrement())
+  regionId       Int           @map("region_id")
+  region         Region        @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  cropId         Int           @map("crop_id")
+  crop           Crop          @relation(fields: [cropId], references: [id], onDelete: Cascade)
+  year           Int
+  season         String
+  areaHectares   Float         @map("area_hectares")
+  prodTonnes     Float         @map("prod_tonnes")
+  yieldKgPerHa   Float         @map("yield_kg_per_ha")
+  sourceId       Int           @map("source_id")
+  source         DatasetSource @relation(fields: [sourceId], references: [id])
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  @@unique([regionId, cropId, year, season])
+  @@index([regionId, cropId, season])
+  @@map("historical_yields")
+}
+
+// ─── 9. Fertilizer & Soil Nutrient Recommendations ──────────────────────────
+model FertilizerRecommendation {
+  id              Int           @id @default(autoincrement())
+  cropId          Int           @map("crop_id")
+  crop            Crop          @relation(fields: [cropId], references: [id], onDelete: Cascade)
+  nKgPerHa        Float         @map("n_kg_per_ha")
+  pKgPerHa        Float         @map("p_kg_per_ha")
+  kKgPerHa        Float         @map("k_kg_per_ha")
+  fymTonnesPerHa  Float         @map("fym_tonnes_per_ha") // Farm Yard Manure
+  basalDose       String        @map("basal_dose")
+  topDressing     String        @map("top_dressing")
+  sourceId        Int           @map("source_id")
+  source          DatasetSource @relation(fields: [sourceId], references: [id])
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  @@unique([cropId])
+  @@map("fertilizer_recommendations")
+}
+
+// ─── 10. Multi-Factor District Risk Profiles ────────────────────────────────
+model DistrictRiskProfile {
+  id                 Int           @id @default(autoincrement())
+  regionId           Int           @map("region_id")
+  region             Region        @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  cropId             Int           @map("crop_id")
+  crop               Crop          @relation(fields: [cropId], references: [id], onDelete: Cascade)
+  season             String
+  droughtRiskPct     Float         @map("drought_risk_pct")       // % historical rainfall deficit seasons
+  floodRiskClass     String        @map("flood_risk_class")       // Low, Medium, High (NRSC)
+  marketVolatilityCV Float         @map("market_volatility_cv")   // Price Coefficient of Variation (eNAM)
+  pestVulnerability  String        @map("pest_vulnerability")    // Low, Moderate, High
+  overallRiskRating  String        @map("overall_risk_rating")    // Low Risk, Moderate Risk, High Risk
+  riskScore          Float         @map("risk_score")             // 0 - 100 Normalized composite index
+  keyDrivers         String        @map("key_drivers")            // JSON or semicolon separated explanation
+  mitigationAdvice   String        @map("mitigation_advice")
+  sourceId           Int           @map("source_id")
+  source             DatasetSource @relation(fields: [sourceId], references: [id])
+  createdAt          DateTime      @default(now()) @map("created_at")
+
+  @@unique([regionId, cropId, season])
+  @@index([regionId, overallRiskRating])
+  @@map("district_risk_profiles")
+}
+
+// ─── 11. Contact Inquiries ──────────────────────────────────────────────────
 model ContactEnquiry {
   id        Int      @id @default(autoincrement())
   name      String

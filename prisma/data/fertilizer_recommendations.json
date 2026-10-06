@@ -1,0 +1,110 @@
+[
+  {
+    "cropName": "Rice",
+    "nKgPerHa": 120.0,
+    "pKgPerHa": 60.0,
+    "kKgPerHa": 40.0,
+    "fymTonnesPerHa": 10.0,
+    "basalDose": "50% N + 100% P2O5 + 100% K2O at final puddling/transplanting",
+    "topDressing": "25% N at active tillering (3 weeks) + 25% N at panicle initiation (6 weeks)"
+  },
+  {
+    "cropName": "Wheat",
+    "nKgPerHa": 120.0,
+    "pKgPerHa": 60.0,
+    "kKgPerHa": 40.0,
+    "fymTonnesPerHa": 8.0,
+    "basalDose": "50% N + 100% P2O5 + 100% K2O drilled at sowing",
+    "topDressing": "25% N at Crown Root Initiation (CRI - 21 DAS) + 25% N at first node/flowering stage"
+  },
+  {
+    "cropName": "Maize",
+    "nKgPerHa": 120.0,
+    "pKgPerHa": 60.0,
+    "kKgPerHa": 50.0,
+    "fymTonnesPerHa": 10.0,
+    "basalDose": "33% N + 100% P2O5 + 100% K2O at sowing",
+    "topDressing": "33% N at knee-high stage (30 DAS) + 34% N at tasseling stage (50 DAS)"
+  },
+  {
+    "cropName": "Jowar (Sorghum)",
+    "nKgPerHa": 80.0,
+    "pKgPerHa": 40.0,
+    "kKgPerHa": 40.0,
+    "fymTonnesPerHa": 6.0,
+    "basalDose": "50% N + 100% P2O5 + 100% K2O at sowing",
+    "topDressing": "50% N at 30-35 days after emergence"
+  },
+  {
+    "cropName": "Bajra (Pearl Millet)",
+    "nKgPerHa": 60.0,
+    "pKgPerHa": 30.0,
+    "kKgPerHa": 20.0,
+    "fymTonnesPerHa": 5.0,
+    "basalDose": "50% N + 100% P2O5 + 100% K2O at sowing",
+    "topDressing": "50% N at 3-4 weeks after sowing"
+  },
+  {
+    "cropName": "Chickpea (Gram)",
+    "nKgPerHa": 20.0,
+    "pKgPerHa": 50.0,
+    "kKgPerHa": 20.0,
+    "fymTonnesPerHa": 5.0,
+    "basalDose": "100% N + 100% P2O5 + 100% K2O as basal starter dose (incorporate Rhizobium seed inoculant)",
+    "topDressing": "Foliar spray of 2% Urea at flowering if nodulation is suboptimal"
+  },
+  {
+    "cropName": "Pigeonpea (Arhar/Tur)",
+    "nKgPerHa": 25.0,
+    "pKgPerHa": 50.0,
+    "kKgPerHa": 20.0,
+    "fymTonnesPerHa": 6.0,
+    "basalDose": "100% N + 100% P2O5 + 100% K2O with 20 kg/ha Sulphur at sowing",
+    "topDressing": "Rhizobium and PSB seed treatment; foliar DAP 2% at pod formation"
+  },
+  {
+    "cropName": "Groundnut",
+    "nKgPerHa": 25.0,
+    "pKgPerHa": 50.0,
+    "kKgPerHa": 40.0,
+    "fymTonnesPerHa": 7.5,
+    "basalDose": "100% N + 100% P2O5 + 100% K2O + 200 kg/ha Gypsum at sowing",
+    "topDressing": "200 kg/ha Gypsum at pegging stage (40-45 DAS) for pod filling and calcium supply"
+  },
+  {
+    "cropName": "Soybean",
+    "nKgPerHa": 30.0,
+    "pKgPerHa": 60.0,
+    "kKgPerHa": 30.0,
+    "fymTonnesPerHa": 6.0,
+    "basalDose": "100% N + 100% P2O5 + 100% K2O with 20 kg/ha Sulphur at sowing",
+    "topDressing": "Bradyrhizobium japonicum inoculation; no top dressing needed if nodulated"
+  },
+  {
+    "cropName": "Mustard",
+    "nKgPerHa": 80.0,
+    "pKgPerHa": 40.0,
+    "kKgPerHa": 40.0,
+    "fymTonnesPerHa": 6.0,
+    "basalDose": "50% N + 100% P2O5 + 100% K2O + 20 kg/ha elemental Sulphur at sowing",
+    "topDressing": "50% N at first irrigation / 30-35 DAS"
+  },
+  {
+    "cropName": "Cotton",
+    "nKgPerHa": 150.0,
+    "pKgPerHa": 60.0,
+    "kKgPerHa": 60.0,
+    "fymTonnesPerHa": 12.0,
+    "basalDose": "20% N + 100% P2O5 + 50% K2O at sowing",
+    "topDressing": "40% N at square formation + 40% N + 50% K2O at peak boll development"
+  },
+  {
+    "cropName": "Sugarcane",
+    "nKgPerHa": 250.0,
+    "pKgPerHa": 80.0,
+    "kKgPerHa": 80.0,
+    "fymTonnesPerHa": 20.0,
+    "basalDose": "30% N + 100% P2O5 + 50% K2O in furrows before planting setts",
+    "topDressing": "35% N at tillering (45-60 DAP) + 35% N + 50% K2O at formative stage (90-120 DAP)"
+  }
+]

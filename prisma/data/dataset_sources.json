@@ -1,0 +1,68 @@
+[
+  {
+    "code": "ICRISAT_DLD",
+    "name": "ICRISAT District Level Database (DLD)",
+    "publisher": "International Crops Research Institute for the Semi-Arid Tropics & ICAR",
+    "citation": "ICRISAT (2020). Meso-level District-Level Database for Indian Agriculture (1966-2017). ICRISAT, Patancheru, India.",
+    "url": "http://data.icrisat.org/dld/",
+    "license": "Open Data Commons Attribution License (ODC-By)",
+    "geographicScope": "Pan-India: 580+ districts spanning 20 major agricultural states",
+    "limitations": "Historical time series standardized to 1966 district boundaries; recent bifurcated districts mapped to parent administrative units.",
+    "version": "Release 2020.1"
+  },
+  {
+    "code": "DES_MOAFW",
+    "name": "Agricultural Statistics at a Glance",
+    "publisher": "Directorate of Economics & Statistics, Ministry of Agriculture & Farmers Welfare, GoI",
+    "citation": "DES, MoAFW (2023). Agricultural Statistics at a Glance 2022-23. Government of India, New Delhi.",
+    "url": "https://eands.dacnet.nic.in/",
+    "license": "Government Open Data License - India (GODL-India)",
+    "geographicScope": "All Indian States and Union Territories",
+    "limitations": "State-level aggregates published annually; district final estimates subject to state crop cutting experiment (CCE) reconciliation.",
+    "version": "2022-2023"
+  },
+  {
+    "code": "IMD_CLIMATE",
+    "name": "IMD High-Resolution Daily & Seasonal Meteorological Dataset",
+    "publisher": "India Meteorological Department, Ministry of Earth Sciences, GoI",
+    "citation": "Pai et al. (2014). Development of a new high spatial resolution (0.25° × 0.25°) daily gridded rainfall data set over India (1901–2010). Mausam, 65(1), 1-18.",
+    "url": "https://www.imdpune.gov.in/",
+    "license": "Non-commercial Academic Research & Public Good Advisory Policy",
+    "geographicScope": "Mainland India (0.25° x 0.25° gridded resolution)",
+    "limitations": "Spatial interpolation over complex terrain may introduce minor smoothing in hilly districts.",
+    "version": "IMD4-0.25d"
+  },
+  {
+    "code": "ENAM_AGMARK",
+    "name": "eNAM & Agmarknet Daily Agricultural Wholesale Mandi Prices",
+    "publisher": "Directorate of Marketing & Inspection (DMI), Ministry of Agriculture & Farmers Welfare",
+    "citation": "Agmarknet Portal (2024). Agricultural Marketing Information System. Ministry of Agriculture, GoI.",
+    "url": "https://agmarknet.gov.in/",
+    "license": "Open Government Data (OGD) Platform India",
+    "geographicScope": "2,700+ regulated APMC Mandis across 28 States and 4 UTs",
+    "limitations": "Prices reflect arrivals at APMC mandis; local village farmgate prices may have minor transportation discounts.",
+    "version": "2024.Q1"
+  },
+  {
+    "code": "ICAR_POPS",
+    "name": "ICAR Package of Practices & Crop Production Guidelines",
+    "publisher": "Indian Council of Agricultural Research (ICAR), New Delhi",
+    "citation": "ICAR (2021). Handbook of Agriculture: Facts and Figures for Farmers, Students and All Interested in Farming. ICAR, New Delhi.",
+    "url": "https://icar.org.in/",
+    "license": "Public Agricultural Extension & Scientific Citation",
+    "geographicScope": "15 Agro-Climatic Zones of India",
+    "limitations": "Agronomic thresholds represent optimal and tolerable physiological limits under recommended field management.",
+    "version": "6th Edition (Revised)"
+  },
+  {
+    "code": "SHC_MOAFW",
+    "name": "National Soil Health Card Database",
+    "publisher": "Department of Agriculture & Farmers Welfare, Ministry of Agriculture, GoI",
+    "citation": "Soil Health Card Portal (2023). District-wise Soil Fertility Status of India. MoAFW, New Delhi.",
+    "url": "https://soilhealth.dac.gov.in/",
+    "license": "Government Open Data License - India (GODL-India)",
+    "geographicScope": "All agricultural districts in India",
+    "limitations": "Sampled at grid intervals (2.5 ha irrigated, 10 ha rainfed); represents district modal fertility ratings.",
+    "version": "Cycle-II (2017-2019/2023 Updated)"
+  }
+]
