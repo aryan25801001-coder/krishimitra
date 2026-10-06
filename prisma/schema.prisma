@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Crop yield records (loaded from ICRISAT VDSA / MoAFW data) ─────────────
+model CropYield {
+  id         Int    @id @default(autoincrement())
+  state      String
+  district   String
+  crop       String
+  season     String
+  year       Int
+  areaHa     Float  @map("area_ha")       // Area in hectares
+  prodTonnes Float  @map("prod_tonnes")   // Production in tonnes
+  yieldKgHa  Float  @map("yield_kg_ha")   // Yield in kg/hectare
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([state, district, crop, season])
+  @@map("crop_yields")
+}
+
+// ─── District risk profiles (computed from IMD, eNAM, NBSS, NRSC data) ──────
+model DistrictRisk {
+  id                  Int    @id @default(autoincrement())
+  state               String
+  district            String
+  droughtFrequency    Float  @map("drought_frequency")    // % of years with >19% rainfall deficit
+  floodHazardClass    String @map("flood_hazard_class")   // Low / Medium / High (NRSC)
+  priceVolatilityCV   Float  @map("price_volatility_cv")  // Coefficient of variation (eNAM)
+  soilDegradationRisk String @map("soil_degradation_risk") // Low / Medium / High (NBSS)
+  dataSource          String @map("data_source")
+  referenceYear       Int    @map("reference_year")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([state, district])
+  @@map("district_risks")
+}
+
+// ─── Crop metadata (agronomic profiles) ─────────────────────────────────────
+model CropProfile {
+  id           Int    @id @default(autoincrement())
+  cropName     String @unique @map("crop_name")
+  season       String
+  waterNeedMm  String @map("water_need_mm")
+  soilType     String @map("soil_type")
+  optimalTempC String @map("optimal_temp_c")
+  majorPests   String @map("major_pests")
+  yieldRangeKgHa String @map("yield_range_kg_ha")
+  icarSource   String @map("icar_source")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("crop_profiles")
+}
+
+// ─── Contact enquiries (Phase 2 — email integration) ────────────────────────
+model ContactEnquiry {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  category  String
+  subject   String?
+  message   String
+  replied   Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("contact_enquiries")
+}
