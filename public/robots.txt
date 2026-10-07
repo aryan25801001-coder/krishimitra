@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Exclude admin and API routes
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://krishimitra.in/sitemap.xml

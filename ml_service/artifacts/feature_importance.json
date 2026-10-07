@@ -1,0 +1,62 @@
+[
+  {
+    "feature": "season_Annual",
+    "importance": 0.3591
+  },
+  {
+    "feature": "crop_Sugarcane",
+    "importance": 0.3186
+  },
+  {
+    "feature": "growth_duration_days",
+    "importance": 0.3053
+  },
+  {
+    "feature": "irrigation_type_Rainfed",
+    "importance": 0.0101
+  },
+  {
+    "feature": "crop_Cotton",
+    "importance": 0.0011
+  },
+  {
+    "feature": "soil_ph",
+    "importance": 0.0011
+  },
+  {
+    "feature": "rainfall_mm",
+    "importance": 0.0009
+  },
+  {
+    "feature": "rainfall_ratio",
+    "importance": 0.0009
+  },
+  {
+    "feature": "irrigation_type_Drip / Sprinkler",
+    "importance": 0.0006
+  },
+  {
+    "feature": "organic_carbon_pct",
+    "importance": 0.0006
+  },
+  {
+    "feature": "nutrient_index",
+    "importance": 0.0004
+  },
+  {
+    "feature": "area_ha",
+    "importance": 0.0003
+  },
+  {
+    "feature": "crop_Maize",
+    "importance": 0.0002
+  },
+  {
+    "feature": "crop_Wheat",
+    "importance": 0.0002
+  },
+  {
+    "feature": "soil_type_Alluvial (Deep Loam)",
+    "importance": 0.0002
+  }
+]

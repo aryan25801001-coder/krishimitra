@@ -1,0 +1,77 @@
+{
+  "champion_model": "Random Forest Regressor",
+  "dataset_size": 2640,
+  "evaluation_date": "2026-10-06T22:53:30.221834",
+  "all_models": {
+    "Linear Regression": {
+      "validation": {
+        "MAE": 735.34,
+        "RMSE": 1726.41,
+        "R2": 0.9919,
+        "MAPE_pct": 35.25
+      },
+      "test": {
+        "MAE": 652.89,
+        "RMSE": 1372.46,
+        "R2": 0.9934,
+        "MAPE_pct": 34.36
+      }
+    },
+    "Ridge Regression": {
+      "validation": {
+        "MAE": 752.47,
+        "RMSE": 1730.41,
+        "R2": 0.9918,
+        "MAPE_pct": 37.14
+      },
+      "test": {
+        "MAE": 669.52,
+        "RMSE": 1380.59,
+        "R2": 0.9933,
+        "MAPE_pct": 36.13
+      }
+    },
+    "Random Forest Regressor": {
+      "validation": {
+        "MAE": 106.25,
+        "RMSE": 346.44,
+        "R2": 0.9997,
+        "MAPE_pct": 1.55
+      },
+      "test": {
+        "MAE": 104.0,
+        "RMSE": 368.86,
+        "R2": 0.9995,
+        "MAPE_pct": 1.62
+      }
+    },
+    "Gradient Boosting Regressor": {
+      "validation": {
+        "MAE": 133.17,
+        "RMSE": 471.57,
+        "R2": 0.9994,
+        "MAPE_pct": 1.48
+      },
+      "test": {
+        "MAE": 112.83,
+        "RMSE": 462.55,
+        "R2": 0.9992,
+        "MAPE_pct": 1.46
+      }
+    },
+    "XGBoost Regressor": {
+      "validation": {
+        "MAE": 115.41,
+        "RMSE": 395.49,
+        "R2": 0.9996,
+        "MAPE_pct": 1.47
+      },
+      "test": {
+        "MAE": 104.9,
+        "RMSE": 420.6,
+        "R2": 0.9994,
+        "MAPE_pct": 1.41
+      }
+    }
+  }
+}

@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       data: assessmentResult,
     });
   } catch (error: any) {
-    console.error("Assessment Error:", error);
+    console.error(`Assessment Error: ${error?.message || "Unknown error occurred"}`);
     return NextResponse.json(
       {
         success: false,

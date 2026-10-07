@@ -230,33 +230,110 @@ export async function computeFarmerAssessment(
     datasetSource: "India Meteorological Department (IMD) & NRSC",
   });
 
+  // ML API Call for Yield Prediction
+  let mlYieldPrediction = null;
+  try {
+    const mlRes = await fetch("http://127.0.0.1:8000/predict/yield", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        crop: input.crop,
+        season: input.season,
+        state: input.state,
+        district: input.district,
+        area_ha: (input.farmAreaAcres || 1.0) * 0.404686,
+        soil_type: soilProfile?.soilType || "Alluvial (Loamy)",
+        soil_ph: effectivePh,
+        nitrogen_status: effectiveN,
+        phosphorus_status: effectiveP,
+        potassium_status: effectiveK,
+        organic_carbon_pct: soilProfile?.organicCarbon || 0.5,
+        rainfall_mm: weatherRecords[0]?.rainfallMm || (crop.optimalRainfallMin + crop.optimalRainfallMax) / 2 || 800.0,
+        temp_avg_c: weatherRecords[0] ? (weatherRecords[0].tempMinC + weatherRecords[0].tempMaxC) / 2 : (crop.optimalTempMinC + crop.optimalTempMaxC) / 2 || 25.0,
+        irrigation_type: input.irrigationType
+      })
+    });
+    if (mlRes.ok) {
+      mlYieldPrediction = await mlRes.json();
+    }
+  } catch (err) {
+    console.error("ML Service Yield Prediction Error:", err);
+  }
+
+  // ML API Call for Risk Assessment
+  let mlRiskPrediction = null;
+  try {
+    const mlRiskRes = await fetch("http://127.0.0.1:8000/predict/risk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        crop: input.crop,
+        district: input.district,
+        season: input.season,
+        rainfall_mm: weatherRecords[0]?.rainfallMm || (crop.optimalRainfallMin + crop.optimalRainfallMax) / 2 || 800.0,
+        optimal_rainfall_min: crop.optimalRainfallMin || 500.0,
+        optimal_rainfall_max: crop.optimalRainfallMax || 1200.0,
+        temp_c: weatherRecords[0] ? (weatherRecords[0].tempMinC + weatherRecords[0].tempMaxC) / 2 : (crop.optimalTempMinC + crop.optimalTempMaxC) / 2 || 25.0,
+        optimal_temp_min: crop.optimalTempMinC || 18.0,
+        optimal_temp_max: crop.optimalTempMaxC || 35.0,
+        soil_ph: effectivePh,
+        n_status: effectiveN,
+        p_status: effectiveP,
+        k_status: effectiveK,
+        irrigation_type: input.irrigationType,
+        market_volatility_cv: riskProfile?.marketVolatilityCV || 14.0
+      })
+    });
+    if (mlRiskRes.ok) {
+      mlRiskPrediction = await mlRiskRes.json();
+    }
+  } catch (err) {
+    console.error("ML Service Risk Prediction Error:", err);
+  }
+
   // 4. Calculate Final Yield Estimates
-  const estimatedYieldKgHa = Math.round(baselineYieldKgHa * yieldMultiplier);
-  const estimatedYieldQuintalsPerAcre = Number(((estimatedYieldKgHa / 100) * 0.404686).toFixed(1));
+  let estimatedYieldKgHa = Math.round(baselineYieldKgHa * yieldMultiplier);
+  let estimatedYieldQuintalsPerAcre = Number(((estimatedYieldKgHa / 100) * 0.404686).toFixed(1));
+  let confidenceLevel: "High" | "Medium" | "Moderate" = historicalRecords.length > 0 ? "Medium" : "Moderate";
+  let methodologyNote = "Yield potential computed using ICRISAT district empirical baseline modulated by ICAR physiological response curves for soil pH, macronutrient availability, and irrigation assurance.";
+  
+  if (mlYieldPrediction && mlYieldPrediction.success && mlYieldPrediction.prediction) {
+    estimatedYieldKgHa = mlYieldPrediction.prediction.estimated_yield_kg_ha;
+    estimatedYieldQuintalsPerAcre = mlYieldPrediction.prediction.estimated_yield_quintals_per_acre;
+    confidenceLevel = mlYieldPrediction.prediction.confidence_level === "High" ? "High" : "Medium";
+    methodologyNote = mlYieldPrediction.prediction.communication_notice;
+  }
+
   const farmArea = input.farmAreaAcres ?? 1.0;
   const estimatedTotalProductionQuintals = Number((estimatedYieldQuintalsPerAcre * farmArea).toFixed(1));
 
   // 5. Build Risk Analysis
-  const compositeScore = riskProfile?.riskScore ?? (input.irrigationType === "Rainfed" ? 55 : 28);
-  const overallRating =
-    compositeScore > 60
+  let compositeScore = riskProfile?.riskScore ?? (input.irrigationType === "Rainfed" ? 55 : 28);
+  let overallRating =
+    compositeScore >= 60
       ? "High Risk"
-      : compositeScore > 35
+      : compositeScore >= 35
       ? "Moderate Risk"
       : "Low Risk";
 
-  const drivers: string[] = [];
-  if (input.irrigationType === "Rainfed") {
-    drivers.push(`Monsoon dependency with ${riskProfile?.droughtRiskPct ?? 22}% historical rainfall deficit probability in ${input.district}.`);
-  }
-  if ((riskProfile?.marketVolatilityCV ?? 12) > 18) {
-    drivers.push(`Market price volatility index is elevated (CV ${riskProfile?.marketVolatilityCV}% on eNAM mandi records).`);
-  }
-  if (crop.majorPests) {
-    drivers.push(`Seasonal pest susceptibility: ${crop.majorPests.split(",")[0]}.`);
-  }
-  if (drivers.length === 0) {
-    drivers.push("Standard agro-climatic conditions with good regional irrigation coverage.");
+  let drivers: string[] = [];
+  if (mlRiskPrediction && mlRiskPrediction.success && mlRiskPrediction.risk_assessment) {
+    compositeScore = mlRiskPrediction.risk_assessment.compositeRiskScore;
+    overallRating = mlRiskPrediction.risk_assessment.overallRiskRating;
+    drivers = mlRiskPrediction.risk_assessment.primaryRiskDrivers;
+  } else {
+    if (input.irrigationType === "Rainfed") {
+      drivers.push(`Monsoon dependency with ${riskProfile?.droughtRiskPct ?? 22}% historical rainfall deficit probability in ${input.district}.`);
+    }
+    if ((riskProfile?.marketVolatilityCV ?? 12) > 18) {
+      drivers.push(`Market price volatility index is elevated (CV ${riskProfile?.marketVolatilityCV}% on eNAM mandi records).`);
+    }
+    if (crop.majorPests) {
+      drivers.push(`Seasonal pest susceptibility: ${crop.majorPests.split(",")[0]}.`);
+    }
+    if (drivers.length === 0) {
+      drivers.push("Standard agro-climatic conditions with good regional irrigation coverage.");
+    }
   }
 
   // 6. Build Practical Agronomic Advisory
@@ -312,17 +389,16 @@ export async function computeFarmerAssessment(
       estimatedYieldKgHa,
       estimatedYieldQuintalsPerAcre,
       estimatedTotalProductionQuintals,
-      confidenceLevel: historicalRecords.length > 0 ? "High" : "Moderate",
+      confidenceLevel: confidenceLevel,
       factors,
-      methodologyNote:
-        "Yield potential computed using ICRISAT district empirical baseline modulated by ICAR physiological response curves for soil pH, macronutrient availability, and irrigation assurance.",
+      methodologyNote: methodologyNote,
     },
     riskAnalysis: {
-      overallRiskRating: overallRating,
+      overallRiskRating: overallRating as any,
       compositeRiskScore: compositeScore,
-      climateDroughtRiskPct: riskProfile?.droughtRiskPct ?? (input.irrigationType === "Rainfed" ? 28 : 12),
+      climateDroughtRiskPct: mlRiskPrediction?.risk_assessment?.dimensions?.climateRisk ?? (riskProfile?.droughtRiskPct ?? (input.irrigationType === "Rainfed" ? 28 : 12)),
       floodHazardClass: riskProfile?.floodRiskClass ?? "Low",
-      marketPriceVolatilityCV: riskProfile?.marketVolatilityCV ?? 14.5,
+      marketPriceVolatilityCV: mlRiskPrediction?.risk_assessment?.dimensions?.marketRisk ?? (riskProfile?.marketVolatilityCV ?? 14.5),
       pestVulnerability: riskProfile?.pestVulnerability ?? "Moderate",
       keyRiskDrivers: drivers,
       provenance: {

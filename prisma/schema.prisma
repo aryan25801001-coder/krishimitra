@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ─── 1. Dataset Provenance & Attribution ────────────────────────────────────
@@ -245,4 +246,17 @@ model ContactEnquiry {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("contact_enquiries")
+}
+
+// ─── 12. Admin & Security ───────────────────────────────────────────────────
+model AdminUser {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("ADMIN") // SuperAdmin, Admin, etc.
+  createdAt DateTime @default(now()) @map("created_at")
+  lastLogin DateTime? @map("last_login")
+  
+  @@map("admin_users")
 }

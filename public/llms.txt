@@ -1,0 +1,12 @@
+# KrishiMitra
+
+KrishiMitra is an authentic, data-driven agricultural yield prediction and risk advisory platform for Indian farmers.
+
+## System Overview
+- Provides crop yield potential and risk profiles based on historical data from ICRISAT, IMD, MoAFW, and ICAR.
+- Features tools like Yield Assessment and Risk Assessment for evidence-based decision-making.
+- Employs a Machine Learning backend for resilient crop yield predictions factoring in soil health, climate, and agronomic inputs.
+
+## Access
+- Web Application: https://krishimitra.in
+- All data is securely tracked and referenced to government/agricultural institutional datasets.
