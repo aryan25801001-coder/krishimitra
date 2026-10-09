@@ -104,6 +104,14 @@ export interface AssessmentResult {
     pestManagement: string;
     riskMitigation: string;
   };
+  dataAvailability?: {
+    isComplete: boolean;
+    hasHistoricalYields: boolean;
+    hasSoilProfile: boolean;
+    hasWeatherRecords: boolean;
+    hasRiskProfile: boolean;
+    notice?: string;
+  };
   disclaimer: string;
 }
 
@@ -139,6 +147,23 @@ export async function computeFarmerAssessment(
   const soilProfile = await getSoilProfileByDistrict(input.district);
   const weatherRecords = await getWeatherByDistrict(input.district);
   const riskProfile = await getRiskProfile(input.district, input.crop, input.season);
+
+  const hasHistoricalYields = historicalRecords.length > 0;
+  const hasSoilProfile = soilProfile !== null;
+  const hasWeatherRecords = weatherRecords.length > 0;
+  const hasRiskProfile = riskProfile !== null;
+  const isCompleteData = hasHistoricalYields && hasSoilProfile && hasWeatherRecords && hasRiskProfile;
+
+  let dataNotice: string | undefined = undefined;
+  if (!isCompleteData) {
+    const missingParts: string[] = [];
+    if (!hasHistoricalYields) missingParts.push("district historical yield records");
+    if (!hasSoilProfile) missingParts.push("Soil Health Card fertility profiles");
+    if (!hasWeatherRecords) missingParts.push("IMD weather observations");
+    if (!hasRiskProfile) missingParts.push("district risk ratings");
+
+    dataNotice = `Data Availability Notice: ${input.district} (${input.state}) is fully registered in the official Indian administrative dataset. However, ${missingParts.join(", ")} are undergoing pipeline ingestion. Baseline ICAR national benchmarks are displayed.`;
+  }
 
   const effectivePh = input.soilPh ?? (soilProfile ? (soilProfile.phMin + soilProfile.phMax) / 2 : 7.0);
   const effectiveN = input.nitrogenStatus ?? (soilProfile?.nStatus as any) ?? "Medium";
@@ -231,9 +256,10 @@ export async function computeFarmerAssessment(
   });
 
   // ML API Call for Yield Prediction
+  const mlServiceBase = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
   let mlYieldPrediction = null;
   try {
-    const mlRes = await fetch("http://127.0.0.1:8000/predict/yield", {
+    const mlRes = await fetch(`${mlServiceBase}/predict/yield`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -263,7 +289,7 @@ export async function computeFarmerAssessment(
   // ML API Call for Risk Assessment
   let mlRiskPrediction = null;
   try {
-    const mlRiskRes = await fetch("http://127.0.0.1:8000/predict/risk", {
+    const mlRiskRes = await fetch(`${mlServiceBase}/predict/risk`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -420,6 +446,14 @@ export async function computeFarmerAssessment(
       waterManagement: waterAdvice,
       pestManagement: pestAdvice,
       riskMitigation,
+    },
+    dataAvailability: {
+      isComplete: isCompleteData,
+      hasHistoricalYields,
+      hasSoilProfile,
+      hasWeatherRecords,
+      hasRiskProfile,
+      notice: dataNotice,
     },
     disclaimer:
       "Important Notice: All yield estimates and risk indices are data-driven scientific projections based on historical government and research datasets. Actual farm outcomes depend on real-time seasonal weather, seed quality, and crop management. Never treat projections as guaranteed outcomes.",

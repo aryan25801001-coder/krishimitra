@@ -19,16 +19,18 @@ import {
   AlertCircle,
 } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import SearchableSelect from "@/components/SearchableSelect";
+import { INDIAN_STATES } from "@/lib/constants";
 
 export default function RiskAssessmentPage() {
-  const [stateList, setStateList] = useState<string[]>([]);
+  const [stateList, setStateList] = useState<string[]>(Array.from(INDIAN_STATES));
   const [districtList, setDistrictList] = useState<string[]>([]);
   const [cropList, setCropList] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
-    state: "",
-    district: "",
-    crop: "",
+    state: "Maharashtra",
+    district: "Nashik",
+    crop: "Cotton",
     season: "Kharif",
     irrigationType: "Canal",
     landType: "Lowland (Submergence prone)",
@@ -36,7 +38,8 @@ export default function RiskAssessmentPage() {
 
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [isDistrictLoading, setIsDistrictLoading] = useState(false);
   const [riskData, setRiskData] = useState<any | null>(null);
   const [showResetModal, setShowResetModal] = useState(false);
 
@@ -46,28 +49,19 @@ export default function RiskAssessmentPage() {
   // Load initial states and crops
   useEffect(() => {
     async function loadData() {
-      setIsDataLoading(true);
       try {
         const [statesRes, cropsRes] = await Promise.all([
-          fetch("/api/regions?list=states").then((r) => r.json()),
-          fetch("/api/crops").then((r) => r.json()),
+          fetch("/api/regions?list=states").then((r) => r.json()).catch(() => null),
+          fetch("/api/crops").then((r) => r.json()).catch(() => null),
         ]);
-        if (statesRes.success) {
+        if (statesRes && statesRes.success && statesRes.data.length > 0) {
           setStateList(statesRes.data);
-          if (statesRes.data.length > 0 && !formData.state) {
-            setFormData((prev) => ({ ...prev, state: "Maharashtra" }));
-          }
         }
-        if (cropsRes.success) {
+        if (cropsRes && cropsRes.success && cropsRes.data.length > 0) {
           setCropList(cropsRes.data);
-          if (cropsRes.data.length > 0 && !formData.crop) {
-            setFormData((prev) => ({ ...prev, crop: "Cotton" }));
-          }
         }
       } catch (err) {
         console.error("Failed to load metadata", err);
-      } finally {
-        setIsDataLoading(false);
       }
     }
     loadData();
@@ -80,6 +74,7 @@ export default function RiskAssessmentPage() {
       return;
     }
     async function fetchDistricts() {
+      setIsDistrictLoading(true);
       try {
         const res = await fetch(`/api/regions?state=${encodeURIComponent(formData.state)}&list=districts`);
         const json = await res.json();
@@ -94,6 +89,8 @@ export default function RiskAssessmentPage() {
         }
       } catch (e) {
         console.error("Failed to load districts", e);
+      } finally {
+        setIsDistrictLoading(false);
       }
     }
     fetchDistricts();
@@ -186,45 +183,47 @@ export default function RiskAssessmentPage() {
         {/* Form Card */}
         <form onSubmit={handleSubmit} noValidate style={{ background: "#ffffff", border: "1px solid var(--color-border)", borderRadius: 12, padding: "2rem", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", marginBottom: "3rem" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "2rem" }}>
-            {/* State */}
+            {/* Country */}
             <div>
-              <label htmlFor="state-field" className="form-label">
-                State <span style={{ color: "#dc2626" }}>*</span>
-              </label>
-              <select
-                id="state-field"
-                className={`form-select ${clientErrors.state ? "form-input-error" : ""}`}
-                value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                disabled={isLoading || isDataLoading}
-                required
-              >
-                <option value="">Select State</option>
-                {stateList.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+              <label className="form-label">Country</label>
+              <input
+                type="text"
+                className="form-input"
+                value="India 🇮🇳 (All 36 States & UTs)"
+                readOnly
+                disabled
+                style={{ background: "var(--color-neutral-100)", color: "var(--color-neutral-700)", fontWeight: 500 }}
+              />
             </div>
 
+            {/* State / UT */}
+            <SearchableSelect
+              id="state-field"
+              label="State / Union Territory"
+              value={formData.state}
+              options={stateList}
+              onChange={(val) => setFormData((prev) => ({ ...prev, state: val, district: "" }))}
+              placeholder="Search State or Union Territory..."
+              disabled={isLoading || isDataLoading}
+              required
+              error={clientErrors.state}
+              loading={isDataLoading}
+            />
+
             {/* District */}
-            <div>
-              <label htmlFor="district-field" className="form-label">
-                District <span style={{ color: "#dc2626" }}>*</span>
-              </label>
-              <select
-                id="district-field"
-                className={`form-select ${clientErrors.district ? "form-input-error" : ""}`}
-                value={formData.district}
-                onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                disabled={isLoading || isDataLoading || districtList.length === 0}
-                required
-              >
-                <option value="">Select District</option>
-                {districtList.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </div>
+            <SearchableSelect
+              id="district-field"
+              label={formData.state ? `District (${districtList.length} Districts)` : "District"}
+              value={formData.district}
+              options={districtList}
+              onChange={(val) => setFormData((prev) => ({ ...prev, district: val }))}
+              placeholder={formData.state ? "Search District..." : "Select State / UT First"}
+              disabled={isLoading || isDataLoading || isDistrictLoading || !formData.state || districtList.length === 0}
+              required
+              error={clientErrors.district}
+              loading={isDistrictLoading}
+              emptyMessage="No districts found for selected State/UT"
+            />
 
             {/* Crop */}
             <div>

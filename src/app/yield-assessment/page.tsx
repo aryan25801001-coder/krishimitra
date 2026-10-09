@@ -23,17 +23,19 @@ import {
 import { AssessmentResult } from "@/lib/advisory-engine";
 import { saveAssessment } from "@/lib/assessment-storage";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import SearchableSelect from "@/components/SearchableSelect";
+import { INDIAN_STATES } from "@/lib/constants";
 
 export default function YieldAssessmentPage() {
   // Form State
-  const [stateList, setStateList] = useState<string[]>([]);
+  const [stateList, setStateList] = useState<string[]>(Array.from(INDIAN_STATES));
   const [districtList, setDistrictList] = useState<string[]>([]);
   const [cropList, setCropList] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
-    state: "",
-    district: "",
-    crop: "",
+    state: "Punjab",
+    district: "Ludhiana",
+    crop: "Wheat",
     season: "Kharif",
     farmAreaAcres: "2.5",
     soilType: "Alluvial (Loamy)",
@@ -49,7 +51,8 @@ export default function YieldAssessmentPage() {
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [isDistrictLoading, setIsDistrictLoading] = useState(false);
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
@@ -60,28 +63,19 @@ export default function YieldAssessmentPage() {
   // 1. Load initial states and crops
   useEffect(() => {
     async function loadMetadata() {
-      setIsDataLoading(true);
       try {
         const [statesRes, cropsRes] = await Promise.all([
-          fetch("/api/regions?list=states").then((r) => r.json()),
-          fetch("/api/crops").then((r) => r.json()),
+          fetch("/api/regions?list=states").then((r) => r.json()).catch(() => null),
+          fetch("/api/crops").then((r) => r.json()).catch(() => null),
         ]);
-        if (statesRes.success) {
+        if (statesRes && statesRes.success && statesRes.data.length > 0) {
           setStateList(statesRes.data);
-          if (statesRes.data.length > 0 && !formData.state) {
-            setFormData((prev) => ({ ...prev, state: "Punjab" }));
-          }
         }
-        if (cropsRes.success) {
+        if (cropsRes && cropsRes.success && cropsRes.data.length > 0) {
           setCropList(cropsRes.data);
-          if (cropsRes.data.length > 0 && !formData.crop) {
-            setFormData((prev) => ({ ...prev, crop: "Wheat" }));
-          }
         }
       } catch (err) {
         console.error("Failed to load agricultural metadata", err);
-      } finally {
-        setIsDataLoading(false);
       }
     }
     loadMetadata();
@@ -94,6 +88,7 @@ export default function YieldAssessmentPage() {
       return;
     }
     async function loadDistricts() {
+      setIsDistrictLoading(true);
       try {
         const res = await fetch(`/api/regions?state=${encodeURIComponent(formData.state)}&list=districts`);
         const json = await res.json();
@@ -108,6 +103,8 @@ export default function YieldAssessmentPage() {
         }
       } catch (e) {
         console.error("Failed to fetch districts", e);
+      } finally {
+        setIsDistrictLoading(false);
       }
     }
     loadDistricts();
@@ -222,7 +219,7 @@ export default function YieldAssessmentPage() {
         <header style={{ marginBottom: "2.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "0.5rem" }}>
             <span className="badge badge-primary">ICAR &amp; ICRISAT Grounded</span>
-            <span className="badge badge-neutral">No AI Slop / Zero Speculation</span>
+            <span className="badge badge-neutral">All 36 States &amp; UTs Supported</span>
           </div>
           <h1 style={{ fontSize: "clamp(1.75rem, 4vw, 2.375rem)", fontWeight: 800, color: "var(--color-neutral-900)", letterSpacing: "-0.025em", marginBottom: "0.5rem" }}>
             Crop Yield Potential &amp; Advisory Assessment
@@ -276,47 +273,47 @@ export default function YieldAssessmentPage() {
             </h2>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem" }}>
-              {/* State */}
+              {/* Country */}
               <div>
-                <label htmlFor="state-select" className="form-label">
-                  State <span style={{ color: "#dc2626" }}>*</span>
-                </label>
-                <select
-                  id="state-select"
-                  className={`form-select ${clientErrors.state ? "form-input-error" : ""}`}
-                  value={formData.state}
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  disabled={isLoading || isDataLoading}
-                  required
-                >
-                  <option value="">Select State</option>
-                  {stateList.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-                {clientErrors.state && <p className="form-error">{clientErrors.state}</p>}
+                <label className="form-label">Country</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value="India 🇮🇳 (All 36 States & UTs)"
+                  readOnly
+                  disabled
+                  style={{ background: "var(--color-neutral-100)", color: "var(--color-neutral-700)", fontWeight: 500 }}
+                />
               </div>
 
+              {/* State / UT */}
+              <SearchableSelect
+                id="state-select"
+                label="State / Union Territory"
+                value={formData.state}
+                options={stateList}
+                onChange={(val) => setFormData((prev) => ({ ...prev, state: val, district: "" }))}
+                placeholder="Search State or Union Territory..."
+                disabled={isLoading || isDataLoading}
+                required
+                error={clientErrors.state}
+                loading={isDataLoading}
+              />
+
               {/* District */}
-              <div>
-                <label htmlFor="district-select" className="form-label">
-                  District <span style={{ color: "#dc2626" }}>*</span>
-                </label>
-                <select
-                  id="district-select"
-                  className={`form-select ${clientErrors.district ? "form-input-error" : ""}`}
-                  value={formData.district}
-                  onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                  disabled={isLoading || isDataLoading || districtList.length === 0}
-                  required
-                >
-                  <option value="">Select District</option>
-                  {districtList.map((d) => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-                {clientErrors.district && <p className="form-error">{clientErrors.district}</p>}
-              </div>
+              <SearchableSelect
+                id="district-select"
+                label={formData.state ? `District (${districtList.length} Districts)` : "District"}
+                value={formData.district}
+                options={districtList}
+                onChange={(val) => setFormData((prev) => ({ ...prev, district: val }))}
+                placeholder={formData.state ? "Search District..." : "Select State / UT First"}
+                disabled={isLoading || isDataLoading || isDistrictLoading || !formData.state || districtList.length === 0}
+                required
+                error={clientErrors.district}
+                loading={isDistrictLoading}
+                emptyMessage="No districts found for selected State/UT"
+              />
 
               {/* Crop */}
               <div>
@@ -580,6 +577,30 @@ export default function YieldAssessmentPage() {
         {/* Results Section */}
         {result && (
           <div ref={resultSectionRef} style={{ animation: "fadeIn 0.3s ease" }}>
+            {/* Data Availability Status Banner */}
+            {result.dataAvailability?.notice && (
+              <div
+                style={{
+                  background: "#fffbeb",
+                  border: "1px solid #fde68a",
+                  borderRadius: 10,
+                  padding: "1rem 1.25rem",
+                  marginBottom: "1.5rem",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "0.75rem",
+                }}
+              >
+                <Info size={20} style={{ color: "#b45309", flexShrink: 0, marginTop: "0.125rem" }} />
+                <div style={{ fontSize: "0.875rem", color: "#92400e", lineHeight: 1.5 }}>
+                  <strong style={{ display: "block", marginBottom: "0.25rem" }}>
+                    District Administrative Status & Data Availability:
+                  </strong>
+                  {result.dataAvailability.notice}
+                </div>
+              </div>
+            )}
+
             {/* Header / Meta Strip */}
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1rem", background: "var(--color-green-50)", border: "1px solid var(--color-green-200)", borderRadius: 10, padding: "1.25rem 1.5rem", marginBottom: "2rem" }}>
               <div>

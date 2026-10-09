@@ -243,3 +243,4 @@ async def predict_risk(req: RiskEvaluationRequest):
         "success": True,
         "risk_assessment": risk_result,
     }
+

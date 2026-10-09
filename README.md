@@ -1,176 +1,232 @@
-# KrishiMitra — Crop Yield & Farmer Risk Advising System
+# 🌾 KrishiMitra (कृषि मित्र)
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.3.8-black?logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
-[![Prisma ORM](https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma)](https://www.prisma.io/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+> **AI & Data-Driven Agricultural Advisory Platform for Crop Yield Estimation & Risk Assessment**
 
-An explainable, data-driven agricultural advisory web application built for Indian farmers. **KrishiMitra** combines historical district-level agricultural records, meteorological patterns, soil health data, and market metrics to deliver actionable yield assessments and agricultural risk evaluations without speculative marketing claims or black-box predictions.
+KrishiMitra is a full-stack agricultural decision-support web application designed for Indian farmers, agronomic researchers, and agricultural policy analysts. It combines a farmer-facing Next.js 16 frontend with a PostgreSQL-backed data layer and a Python FastAPI machine-learning inference engine to estimate crop yield potential and composite agricultural risk.
+
+The core principle of KrishiMitra is **explainability and data provenance**: every estimate is transparently linked back to authentic weather, soil, agronomic, and market price datasets rather than opaque black-box recommendations.
 
 ---
 
-## 🌾 Core Objectives
+## 🔗 Quick Links & Endpoints
 
-1. **Farmer-Centric Accessibility**: High-contrast, clean visual design optimized for mobile devices and low-bandwidth connections.
-2. **Transparent, Real Data**: Grounded exclusively in authentic government and scientific research datasets (ICRISAT, MoAFW, IMD, eNAM, ICAR).
-3. **Multi-Factor Risk Assessment**: Evaluate drought vulnerability, soil degradation, price volatility, and pest susceptibility.
-4. **Explainable Recommendations**: Transparent reasoning behind all agronomic estimates.
-
----
-
-## 🎨 Design Language & Philosophy
-
-- **Background**: Neutral white & soft grays (`#ffffff`, `#f9fafb`, `#f3f4f6`)
-- **Accent**: Natural agricultural greens (`#2d8f2d`, `#226822`, `#1a4f1a`)
-- **Typography**: Inter (Google Fonts) with clear scale and robust readability
-- **Strict Design Standards**:
-  - No purple/neon gradients
-  - No pill-shaped buttons (standard geometric radii)
-  - No emoji-based iconography (clean Lucide vector icons with ARIA labels)
-  - No disruptive cursor or full-page scroll animations
-  - No artificial/speculative statistics, fake farmer reviews, or mock ratings
+| Service | Localhost URL | Details |
+| :--- | :--- | :--- |
+| **Frontend Web App** | [http://localhost:3000](http://localhost:3000) | Next.js 16 UI (Yield & Risk Assessment, Dashboard, Agronomic Profiles) |
+| **ML Service API** | [http://127.0.0.1:8000](http://127.0.0.1:8000) | Python FastAPI Machine Learning inference backend |
+| **ML API Documentation** | [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) | Interactive Swagger UI for ML endpoints |
+| **ML Health Check** | [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health) | System & ML model artifact health status |
 
 ---
 
-## 🧭 Page Overview (Phase 1)
+## ✨ Features
 
-| Route | Page | Description |
-|---|---|---|
-| `/` | **Home** | Overview hero, platform principles, feature breakdown, data transparency strip, and quick actions. |
-| `/yield-assessment` | **Crop Yield Assessment** | Cascading state-to-district selector, season, crop type, validation, loading skeletons, and explainable estimate cards. |
-| `/risk-assessment` | **Farmer Risk Assessment** | 5-dimension risk evaluation form across climate, soil, market, and pest vectors. |
-| `/dashboard` | **Agricultural Dashboard** | Dataset scope metrics (districts, crops, historical span) with dataset attribution indicators. |
-| `/crop-information` | **Crop Information** | 8 detailed agronomic crop profiles with rainfall requirements, soil types, temperature tolerances, and ICAR references. |
-| `/data-sources` | **Data Sources** | Complete index of 10 official open datasets across 5 categories with licensing and direct access links. |
-| `/faq` | **FAQ** | Accessible accordion with 22 frequently asked questions covering methodologies, limitations, and data freshness. |
-| `/contact` | **Contact** | Validated academic feedback form with category selection and institutional contact information. |
-| `/privacy-policy` | **Privacy Policy** | Transparent non-commercial research privacy declaration with zero tracking cookies. |
-| `/terms` | **Terms & Conditions** | Research prototype disclaimer, advisory limitations, and open usage conditions. |
-| `/*` | **Custom 404** | Accessible fallback page with direct navigation routes. |
+### 👨‍🌾 Farmer & User Experience
+- **Crop Yield Assessment (`/yield-assessment`)**: Input state, district, season, crop, farm area, soil parameters, and irrigation type to receive data-backed yield potential estimates.
+- **Agricultural Risk Assessment (`/risk-assessment`)**: Evaluates composite risk across drought/rainfall deficit, thermal stress, soil reaction (pH), nutrient status, and eNAM market price volatility.
+- **Agronomic Knowledge Base (`/crop-information`)**: Comprehensive profiles covering ICAR optimal ranges (temp, rainfall, soil pH), growth cycles, major pests, and variety selection.
+- **Research Dashboard (`/dashboard`)**: Summary metrics of agricultural conditions, dataset coverage, and regional crop performance.
+- **Data Provenance (`/data-sources`)**: Full attribution and license documentation for ICRISAT, IMD, MoAFW, eNAM, and Soil Health Card datasets.
 
----
+### ⚙️ Architecture & Administrative Layer
+- **Prisma ORM & PostgreSQL Database**: Models for Regions, Crops, Soil Profiles, Weather Observations, Historical Yields, Fertilizer Recommendations, and District Risk Profiles.
+- **Dynamic ML API Integration**: Next.js advisory engine connects dynamically to Python ML endpoints via `process.env.ML_SERVICE_URL` with local fallback.
+- **Admin Security**: Secured API endpoints and admin login portal (`/admin/login`).
 
-## 🛠️ Global UI & Accessibility Features
-
-- **Sticky Navigation Header**: Responsive navigation with mobile hamburger drawer and scroll shadow.
-- **Scroll & Reading Progress Bar**: Real-time reading progress indicator on content-heavy pages.
-- **Back-to-Top Control**: Appears smoothly after 400px scroll depth.
-- **Cookie Consent Banner**: Minimalist cookie notice with `localStorage` preference persistence.
-- **Floating Contact Action**: Quick assistance button with accessible aria attributes.
-- **Skip-to-Content Link**: Keyboard accessible landmark for screen readers.
-- **Print Optimization**: Clean print stylesheet omitting navigation, footers, and interactive elements.
-- **Semantic HTML & WCAG 2.1 AA**: Form controls with associated labels, `role="alert"` for validation errors, and high color contrast.
+### 🤖 Machine Learning Inference Service (`ml_service/`)
+- **Yield Prediction (`POST /predict/yield`)**: Predicts expected yield in tonnes/ha based on district climate, soil nutrients, organic carbon, and irrigation.
+- **Risk Scoring (`POST /predict/risk`)**: Calculates normalized composite risk score (0-100) and risk category classification.
 
 ---
 
-## 📊 Open Agricultural Datasets Integrated
+## 🛠 Tech Stack
 
-1. **ICRISAT District-Level Data (DLD)** — Historical crop yield, area, and production across 580+ Indian districts (1966–2017).
-2. **MoAFW Agricultural Statistics at a Glance** — Annual state-wise crop production statistics (Ministry of Agriculture).
-3. **IMD Gridded Daily Meteorological Datasets** — 0.25° gridded daily rainfall and temperature observations.
-4. **Agmarknet & eNAM Market Mandi Prices** — Modal wholesale agricultural commodity prices.
-5. **Soil Health Card Scheme (MoAFW)** — NPK macronutrient and micronutrient status ratings.
-6. **ICAR Agronomic Guidelines** — Optimal temperature, rainfall, and soil classification metrics.
+- **Frontend Framework**: [Next.js 16](https://nextjs.org/) (App Router), [React 19](https://react.dev/), TypeScript
+- **Styling & UI**: Tailwind CSS v4, Custom Design System
+- **Database & ORM**: [Prisma ORM v5](https://www.prisma.io/), PostgreSQL
+- **ML Backend Service**: [FastAPI](https://fastapi.tiangolo.com/), Uvicorn, Python 3.11+
+- **Machine Learning & Data**: scikit-learn, pandas, numpy, joblib
+- **Authentication**: JWT (`jose`), `bcryptjs`
+- **Concurrency & Tooling**: `concurrently`, ESLint, PostCSS
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 krishi/
+├── .env                         # Environment variables configuration
+├── package.json                 # Node dependencies and scripts
+├── next.config.ts               # Next.js configuration
+├── tsconfig.json                # TypeScript configuration
+├── vercel.json                  # Vercel deployment configuration
 ├── prisma/
-│   └── schema.prisma          # PostgreSQL models (CropYield, DistrictRisk, CropProfile, Contact)
-├── public/
+│   ├── schema.prisma            # Prisma database schema definition
+│   ├── seed.ts                  # Database seeding script
+│   └── data/                    # Historical yields and crop JSON data
+├── public/                      # Static assets and sitemap
 ├── src/
-│   ├── app/
-│   │   ├── layout.tsx         # Root layout with fonts, header, footer, global widgets
-│   │   ├── globals.css        # Pure CSS design system, typography tokens, component styles
-│   │   ├── not-found.tsx      # Accessible custom 404
-│   │   ├── page.tsx           # Home page
-│   │   ├── yield-assessment/  # Crop yield assessment form & results
-│   │   ├── risk-assessment/   # Multi-factor risk assessment form & results
-│   │   ├── dashboard/         # Agricultural metrics and data-scope overview
-│   │   ├── crop-information/  # Agronomic crop profiles (Rice, Wheat, Maize, etc.)
-│   │   ├── data-sources/      # Dataset documentation and citations
-│   │   ├── faq/               # Accordion Q&A
-│   │   ├── contact/           # Academic inquiry form
-│   │   ├── privacy-policy/    # Privacy documentation
-│   │   └── terms/             # Terms and research advisory disclaimer
-│   ├── components/
-│   │   ├── Header.tsx         # Desktop navbar & mobile drawer
-│   │   ├── Footer.tsx         # Semantic multi-column footer
-│   │   ├── ScrollProgress.tsx # Reading progress bar
-│   │   ├── BackToTop.tsx      # Accessible back-to-top button
-│   │   ├── CookieBanner.tsx   # Consent banner with localStorage
-│   │   └── FloatingContact.tsx# Floating support button
-│   └── lib/
-│       ├── constants.ts       # Navigation links, crop seasons, states, datasets
-│       └── utils.ts           # Class merger and date formatting utilities
-├── package.json
-├── tsconfig.json
-└── README.md
+│   ├── app/                     # Next.js App Router pages and API routes
+│   │   ├── admin/               # Admin portal & login
+│   │   ├── api/                 # Next.js REST API routes
+│   │   ├── crop-information/    # Agronomic guidance
+│   │   ├── dashboard/           # Summary dashboard
+│   │   ├── data-sources/        # Data attribution
+│   │   ├── risk-assessment/     # Field risk form & engine
+│   │   ├── yield-assessment/    # Yield potential calculator
+│   │   └── page.tsx             # Landing page
+│   ├── components/              # Shared React components & UI cards
+│   ├── lib/
+│   │   ├── advisory-engine.ts   # Core rule engine & ML fetch integration
+│   │   ├── session.ts           # Authentication session management
+│   │   └── repositories.ts      # Prisma database query layer
+│   └── middleware.ts            # Route protection middleware
+└── ml_service/                  # Python FastAPI ML inference service
+    ├── app.py                   # FastAPI server & route handlers
+    ├── requirements.txt         # Python dependencies
+    ├── artifacts/               # Trained model files (.joblib)
+    ├── data/                    # Agricultural ML training datasets
+    └── pipeline/                # Model training and pipeline scripts
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started (Local Development)
 
-### Prerequisites
-- Node.js 18.17+ or 20+
-- npm, yarn, or pnpm
+### 1. Prerequisites
+- **Node.js**: v20.x or higher
+- **npm**: v10.x or higher
+- **Python**: 3.11 or higher
+- **PostgreSQL**: Local PostgreSQL server or Cloud PostgreSQL instance (Neon, Supabase, Railway)
 
-### 1. Clone & Install
+### 2. Environment Setup
+
+Create or update the `.env` file in the project root:
+
+```env
+# Database connection string
+DATABASE_URL="postgresql://user:password@localhost:5432/krishimitra?schema=public"
+
+# App base URL
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Optional: Remote ML service URL (defaults to http://127.0.0.1:8000 if unset)
+ML_SERVICE_URL="http://127.0.0.1:8000"
+```
+
+### 3. Installation
+
+#### Node.js Dependencies:
 ```bash
-git clone https://github.com/username/krishi.git
-cd krishi
 npm install
 ```
 
-### 2. Configure Environment
-Copy `.env.example` to `.env`:
+#### Python Virtual Environment & Dependencies:
 ```bash
-cp .env.example .env
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+# Windows (PowerShell):
+.\.venv\Scripts\Activate.ps1
+# macOS / Linux:
+source .venv/bin/activate
+
+# Install Python requirements
+pip install -r ml_service/requirements.txt
 ```
 
-### 3. Run Development Server
+### 4. Database Setup
+
+Generate Prisma Client and push schema to your PostgreSQL database:
+
+```bash
+npm run db:generate
+npm run db:push
+```
+
+*(Optional) Seed initial data or open Prisma Studio GUI:*
+```bash
+npm run db:studio
+```
+
+---
+
+## 🏃 Running the Application
+
+### Option A: Full-Stack Mode (Frontend + ML Service concurrently)
+
 ```bash
 npm run dev
 ```
+- Next.js Web App: [http://localhost:3000](http://localhost:3000)
+- FastAPI ML Service: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+### Option B: Individual Service Mode
 
-### 4. Production Build
+**Frontend Only:**
 ```bash
-npm run build
-npm run start
+npm run dev:frontend
+```
+
+**ML Backend Service Only:**
+```bash
+npm run dev:backend
 ```
 
 ---
 
-## 🗺️ Project Roadmap
+## 🌐 Production & Vercel Deployment Guide
 
-- [x] **Phase 1: Foundation & Web Experience**
-  - Next.js 16 App Router setup with TypeScript
-  - Complete farmer-friendly agricultural design system
-  - 11 production-ready pages with responsive layout
-  - Form validation, loading skeletons, error states, and ARIA accessibility
-  - Data sources and academic citations
+When deploying KrishiMitra to production on platforms like **Vercel**:
 
-- [ ] **Phase 2: Database & Real Data Pipeline**
-  - PostgreSQL database setup and Prisma migrations
-  - ICRISAT and Agmarknet data ingestion and normalization scripts
-  - Dynamic district-wise yield and price query endpoints
+### 1. Deploy Python ML Backend (`ml_service`)
+Vercel serverless functions handle Node.js pages. The Python FastAPI service should be hosted on a cloud Python provider:
+- Options: [Render](https://render.com), [Railway](https://railway.app), [Koyeb](https://www.koyeb.com), or [Hugging Face Spaces](https://huggingface.co/spaces)
+- Deploy the `ml_service/` folder with start command:
+  ```bash
+  uvicorn app:app --host 0.0.0.0 --port 8000
+  ```
 
-- [ ] **Phase 3: Machine Learning & Explainability Engine**
-  - Python / FastAPI service for ML inference
-  - Crop yield prediction using XGBoost & Random Forest
-  - SHAP (SHapley Additive exPlanations) values for farmer-interpretable feature importance
-  - Real-time weather API integration (IMD / Open-Meteo)
+### 2. Setup Vercel Environment Variables
+In Vercel Dashboard -> Project Settings -> **Environment Variables**, configure:
+
+| Key | Description | Example |
+| :--- | :--- | :--- |
+| `DATABASE_URL` | Cloud PostgreSQL Connection URL | `postgresql://user:pass@ep-xyz.neon.tech/krishimitra` |
+| `DIRECT_URL` | Direct PostgreSQL URL (for connection pooling) | `postgresql://user:pass@ep-xyz.neon.tech/krishimitra` |
+| `ML_SERVICE_URL` | Deployed Python ML Service URL | `https://krishi-ml-api.onrender.com` |
+| `NEXT_PUBLIC_APP_URL` | Deployed Vercel Domain | `https://krishimitra.vercel.app` |
 
 ---
 
-## 📜 License & Acknowledgements
+## 📜 Available NPM Scripts
 
-- Built as an internship research prototype.
-- Open-source datasets provided by ICRISAT, Ministry of Agriculture & Farmers Welfare (MoAFW), India Meteorological Department (IMD), and ICAR.
+| Script | Command | Description |
+| :--- | :--- | :--- |
+| `npm run dev` | `concurrently ...` | Runs both Next.js app and Python ML service simultaneously |
+| `npm run dev:frontend` | `next dev --webpack` | Runs Next.js frontend only |
+| `npm run dev:backend` | `cd ml_service && python -m uvicorn ...` | Runs FastAPI backend service only |
+| `npm run build` | `prisma generate && next build` | Compiles Next.js production build |
+| `npm run start` | `next start` | Starts Next.js production server |
+| `npm run lint` | `eslint src ...` | Runs TypeScript & Next.js linter |
+| `npm run db:generate` | `prisma generate` | Generates Prisma client types |
+| `npm run db:push` | `prisma db push` | Pushes schema directly to database |
+| `npm run db:studio` | `prisma studio` | Opens Prisma web database editor |
+
+---
+
+## 📊 Dataset Provenance & Attribution
+
+The platform integrates data from open government & research institutions:
+- **ICRISAT**: Village Dynamics in South Asia (VDSA) district yield database.
+- **IMD (India Meteorological Department)**: Gridded historical rainfall & temperature statistics.
+- **MoAFW (Ministry of Agriculture & Farmers Welfare)**: Crop production benchmarks & ICAR growth guidelines.
+- **eNAM (National Agriculture Market)**: Mandi price trends and market volatility indices.
+- **Soil Health Card Scheme**: District-level N-P-K nutrient status and organic carbon distributions.
+
+---
+
+## 📄 License & Disclaimer
+
+KrishiMitra is an open-access agricultural decision-support research prototype. Advisory outputs are intended to guide decisions alongside local agricultural extension officer guidance. Check dataset licensing before commercial redistribution.

@@ -39,19 +39,26 @@ export const CROP_SEASONS = [
   "Annual",
 ] as const;
 
-export const INDIAN_STATES = [
+export const INDIAN_STATES_AND_UTS = [
+  "Andaman and Nicobar Islands",
   "Andhra Pradesh",
   "Arunachal Pradesh",
   "Assam",
   "Bihar",
+  "Chandigarh",
   "Chhattisgarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
   "Goa",
   "Gujarat",
   "Haryana",
   "Himachal Pradesh",
+  "Jammu and Kashmir",
   "Jharkhand",
   "Karnataka",
   "Kerala",
+  "Ladakh",
+  "Lakshadweep",
   "Madhya Pradesh",
   "Maharashtra",
   "Manipur",
@@ -59,6 +66,7 @@ export const INDIAN_STATES = [
   "Mizoram",
   "Nagaland",
   "Odisha",
+  "Puducherry",
   "Punjab",
   "Rajasthan",
   "Sikkim",
@@ -69,6 +77,8 @@ export const INDIAN_STATES = [
   "Uttarakhand",
   "West Bengal",
 ] as const;
+
+export const INDIAN_STATES = INDIAN_STATES_AND_UTS;
 
 export const MAJOR_CROPS = [
   "Rice",
